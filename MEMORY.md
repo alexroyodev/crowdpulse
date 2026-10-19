@@ -2,10 +2,10 @@
 
 ## Estado actual
 - Fase: 1 (MVP síncrono, sin Kafka).
-- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados; en curso T01.
-- Siguiente paso: T01 (monorepo).
-- Código: proyecto Spring Boot 4.1.1 generado en la raíz; el plan propone moverlo a
-  `api/` y crear `simulator/`.
+- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01 hecha.
+- Siguiente paso: T02 (separar unitarios `*Test` e integración `*IT` con Failsafe).
+- Código: monorepo Maven; `pom.xml` raíz es el padre (`packaging=pom`) y módulo
+  `api/` con el proyecto de Initializr. `simulator/` se añade en T13.
 
 ## Decisiones (y su porqué)
 - Maven y Java 21 LTS: herramienta más habitual en ofertas backend Java; LTS estable.
@@ -23,4 +23,5 @@
 - (ninguno)
 
 ## Errores a evitar
-- (vacío por ahora)
+- El `java` del PATH es 17; `./mvnw` usa `JAVA_HOME` (JDK 21). No ejecutar `java`
+  directamente sin comprobar la versión.

@@ -11,7 +11,7 @@ la revisa antes de empezar la siguiente.
 
 ## Bloque A — Base del proyecto
 
-- [ ] **T01 — Reorganizar en monorepo** (plan §2)
+- [x] **T01 — Reorganizar en monorepo** (plan §2)
   - `pom.xml` raíz → `packaging=pom`, `<modules>api</modules>`, hereda de
     `spring-boot-starter-parent` 4.1.1.
   - `git mv src api/src`; crear `api/pom.xml` con las dependencias actuales.
