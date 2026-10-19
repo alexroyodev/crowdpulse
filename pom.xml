@@ -36,4 +36,15 @@
 		<java.version>21</java.version>
 	</properties>
 
+	<build>
+		<plugins>
+			<!-- Unit tests (*Test) run with Surefire in `test`; integration tests (*IT) run with
+			     Failsafe in `verify`. Version and goals come from spring-boot-starter-parent. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
 </project>

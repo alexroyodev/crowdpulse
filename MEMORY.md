@@ -2,8 +2,8 @@
 
 ## Estado actual
 - Fase: 1 (MVP síncrono, sin Kafka).
-- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01 hecha.
-- Siguiente paso: T02 (separar unitarios `*Test` e integración `*IT` con Failsafe).
+- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T02 hechas.
+- Siguiente paso: T03 (JDBC en vez de JPA, `application.yml`, `compose.yaml`).
 - Código: monorepo Maven; `pom.xml` raíz es el padre (`packaging=pom`) y módulo
   `api/` con el proyecto de Initializr. `simulator/` se añade en T13.
 
@@ -18,6 +18,10 @@
   específico de PostgreSQL); bloqueo pesimista `FOR UPDATE` por zona; módulos `api/`
   + `simulator/` (Java plano); `postgres:18` fijado; un `EXIT` anómalo sí actualiza
   `lastEventAt`.
+
+- Tests: `*Test` = unitarios (Surefire, `./mvnw test`, sin Docker); `*IT` =
+  integración (Failsafe, `./mvnw verify`). Así los unitarios son rápidos y no
+  dependen de Docker.
 
 ## Problemas abiertos
 - (ninguno)

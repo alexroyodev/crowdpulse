@@ -20,7 +20,7 @@ la revisa antes de empezar la siguiente.
     Testcontainers); `git log --follow api/src/main/java/.../CrowdpulseApplication.java`
     conserva el historial.
 
-- [ ] **T02 — Separar unitarios e integración** (plan §6)
+- [x] **T02 — Separar unitarios e integración** (plan §6)
   - Configurar `maven-failsafe-plugin` en el padre.
   - Renombrar `CrowdpulseApplicationTests` → `CrowdpulseApplicationIT`.
   - **Verificación:** `./mvnw test` no arranca contenedores; `./mvnw verify` sí
