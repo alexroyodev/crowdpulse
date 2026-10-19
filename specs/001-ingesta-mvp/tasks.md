@@ -26,7 +26,7 @@ la revisa antes de empezar la siguiente.
   - **Verificación:** `./mvnw test` no arranca contenedores; `./mvnw verify` sí
     ejecuta el `*IT`.
 
-- [ ] **T03 — Dependencias, configuración y entorno** (plan §3.2, §3.9, §5)
+- [x] **T03 — Dependencias, configuración y entorno** (plan §3.2, §3.9, §5)
   - Sustituir `data-jpa` (y `data-jpa-test`) por `spring-boot-starter-jdbc`
     (y su starter de test).
   - `application.properties` → `application.yml`: nombre de la app,

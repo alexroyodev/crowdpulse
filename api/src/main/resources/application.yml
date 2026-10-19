@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: crowdpulse-api
+  docker:
+    compose:
+      # compose.yaml lives at the repository root; spring-boot:run uses api/ as working directory.
+      file: ../compose.yaml
+
+server:
+  error:
+    include-stacktrace: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+logging:
+  structured:
+    format:
+      console: ecs
+
+crowdpulse:
+  events:
+    # Maximum allowed distance of occurredAt into the future (spec 001).
+    max-future-skew: 5m

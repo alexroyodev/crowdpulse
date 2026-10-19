@@ -90,6 +90,8 @@ explicar cada línea en una entrevista. Simple y verificable antes que completo.
 
 ## Verificación
 - Unitarios para la lógica de dominio (ocupación, idempotencia, umbrales) sin Spring.
+- Nombres: `*Test` = unitarios (Surefire, `./mvnw test`, sin Docker); `*IT` = integración
+  (Failsafe, `./mvnw verify`).
 - Integración con Testcontainers (PostgreSQL y, desde la fase 2, Kafka): nada de H2
   ni mocks de la base de datos.
 - Cada garantía tiene su test: evento duplicado, `EXIT` antes de `ENTRY`, reinicio

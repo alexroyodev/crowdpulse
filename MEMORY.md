@@ -2,8 +2,8 @@
 
 ## Estado actual
 - Fase: 1 (MVP síncrono, sin Kafka).
-- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T02 hechas.
-- Siguiente paso: T03 (JDBC en vez de JPA, `application.yml`, `compose.yaml`).
+- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T03 hechas.
+- Siguiente paso: T04 (migraciones Flyway V1 esquema + V2 zonas, `MigrationIT`).
 - Código: monorepo Maven; `pom.xml` raíz es el padre (`packaging=pom`) y módulo
   `api/` con el proyecto de Initializr. `simulator/` se añade en T13.
 
@@ -19,13 +19,12 @@
   + `simulator/` (Java plano); `postgres:18` fijado; un `EXIT` anómalo sí actualiza
   `lastEventAt`.
 
-- Tests: `*Test` = unitarios (Surefire, `./mvnw test`, sin Docker); `*IT` =
-  integración (Failsafe, `./mvnw verify`). Así los unitarios son rápidos y no
-  dependen de Docker.
 
 ## Problemas abiertos
 - (ninguno)
 
 ## Errores a evitar
+- En Windows, parar `./mvnw spring-boot:run` deja vivo el `java.exe` hijo en el 8080:
+  localizar el PID con `netstat -ano | grep :8080` y pararlo.
 - El `java` del PATH es 17; `./mvnw` usa `JAVA_HOME` (JDK 21). No ejecutar `java`
   directamente sin comprobar la versión.

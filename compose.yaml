@@ -1,9 +1,10 @@
 services:
   postgres:
-    image: 'postgres:latest'
+    image: 'postgres:18'
     environment:
-      - 'POSTGRES_DB=mydatabase'
-      - 'POSTGRES_PASSWORD=secret'
-      - 'POSTGRES_USER=myuser'
+      - 'POSTGRES_DB=crowdpulse'
+      - 'POSTGRES_USER=crowdpulse'
+      # Development-only default; override with the POSTGRES_PASSWORD environment variable.
+      - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-crowdpulse}'
     ports:
       - '5432'
