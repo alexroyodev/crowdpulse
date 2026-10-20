@@ -52,7 +52,7 @@ Java y de Spring Boot, y `./mvnw verify` no cubriría todo con un solo comando.
 |---------|-----------|
 | `event` | `EventController`, `EventRequest` (record), `EventType` (enum), `EventService`, `SensorEvent` (record), `SensorEventRepository`, validación `@NotTooFarInFuture`, `EventProperties` (`crowdpulse.events.*`) |
 | `occupancy` | `Occupancy` (record de dominio puro), `OccupancyChange`, `OccupancyRepository` |
-| `zone` | `ZoneController`, `ZoneView` (record de respuesta), `ZoneQueryRepository`, `UnknownZoneException` |
+| `zone` | `ZoneController`, `ZoneView` (record de respuesta), `ZoneQueryRepository`, `ZoneNotFoundException` (GET → 404), `UnknownZoneException` (POST → 422) |
 | `common` | `ClockConfig` (bean `Clock`), `ApiExceptionHandler` (`ProblemDetail`) |
 
 `event` depende de `occupancy` y de `zone` (para la excepción); `zone` depende de
@@ -221,7 +221,7 @@ record OccupancyChange(Occupancy result, boolean anomaly) {}
 | Bean Validation falla | 400 | `errors: [{ field, message }]` |
 | JSON ilegible / formato de campo inválido | 400 | `errors: [{ field, message }]` si se puede determinar el campo |
 | `UnknownZoneException` en `POST` | 422 | `zoneId` |
-| Zona inexistente en `GET` | 404 | `zoneId` |
+| `ZoneNotFoundException` en `GET` | 404 | `zoneId` |
 | Cualquier otra excepción | 500 | solo `title` genérico; el detalle va al log |
 
 - `detail` y `message` en español (texto de cara al usuario).

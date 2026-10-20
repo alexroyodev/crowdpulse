@@ -74,10 +74,10 @@ la revisa antes de empezar la siguiente.
 
 ## Bloque C — API
 
-- [ ] **T08 — Consulta de zonas** (plan §3.7, §3.8)
+- [x] **T08 — Consulta de zonas** (plan §3.7, §3.8)
   - `zone.ZoneQueryRepository` (`JdbcClient`, `JOIN`, orden por `zone_id`).
   - `zone.ZoneController`: `GET /api/v1/zones` y `GET /api/v1/zones/{zoneId}`.
-  - `zone.UnknownZoneException`; `common.ApiExceptionHandler` con 404 y 500 genérico.
+  - `zone.ZoneNotFoundException`; `common.ApiExceptionHandler` con 404 y 500 genérico.
   - `ZoneQueryIT`: 4 zonas ordenadas con todos los campos y `lastEventAt: null`;
     CA9 (`/NOEXISTE` → 404 `ProblemDetail`); `norte` en minúsculas → 404.
   - **Verificación:** `./mvnw verify`; `curl` a ambos endpoints y al 404.
@@ -87,7 +87,8 @@ la revisa antes de empezar la siguiente.
     (`INSERT ... ON CONFLICT DO NOTHING`), `occupancy.OccupancyRepository`
     (`SELECT ... FOR UPDATE` y `UPDATE`), `event.EventService` (`@Transactional`),
     `event.EventController` (`POST /api/v1/events` → 202).
-  - 422 en `ApiExceptionHandler`; log WARN con `eventId` en anomalías.
+  - `zone.UnknownZoneException` → 422 en `ApiExceptionHandler`; log WARN con `eventId`
+    en anomalías.
   - `EventIngestionIT` (con `Clock` fijo `@Primary`):
     CA1 (3 ENTRY + 1 EXIT → 2, `lastEventAt` correcto); CA2 (dos 202, un cambio, una
     fila en `sensor_event`); CA4 (422, nada guardado); CA7 (EXIT en 0 → 202,
