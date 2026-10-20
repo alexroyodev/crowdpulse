@@ -2,8 +2,8 @@
 
 ## Estado actual
 - Fase: 1 (MVP síncrono, sin Kafka).
-- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T05 hechas.
-- Siguiente paso: T06 (`ZoneView` y `occupancyPct`, `ZoneViewTest`).
+- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T06 hechas.
+- Siguiente paso: T07 (validador `@NotTooFarInFuture` + `ClockConfig`).
 - Código: monorepo Maven; `pom.xml` raíz es el padre (`packaging=pom`) y módulo
   `api/` con el proyecto de Initializr. `simulator/` se añade en T13.
 
@@ -24,7 +24,8 @@
   va en V3+.
 
 ## Problemas abiertos
-- (ninguno)
+- T08: comprobar en el IT que Jackson 3 serializa `occupancyPct` como número con un
+  decimal (`0.0`, `61.7`) y `lastEventAt` como ISO-8601 (no timestamp numérico).
 
 ## Errores a evitar
 - En Windows, parar `./mvnw spring-boot:run` deja vivo el `java.exe` hijo en el 8080:

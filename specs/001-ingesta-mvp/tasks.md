@@ -58,7 +58,7 @@ la revisa antes de empezar la siguiente.
     nulo toma el del evento.
   - **Verificación:** `./mvnw test`.
 
-- [ ] **T06 — `ZoneView` y `occupancyPct`** (plan §3.8)
+- [x] **T06 — `ZoneView` y `occupancyPct`** (plan §3.8)
   - `zone.ZoneView` con el cálculo estático del porcentaje (`BigDecimal`, 1 decimal,
     `HALF_UP`).
   - `ZoneViewTest`: 12 345/20 000 → 61.7; 0 → 0.0; 25 000/20 000 → 125.0;
