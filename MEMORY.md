@@ -2,8 +2,8 @@
 
 ## Estado actual
 - Fase: 1 (MVP síncrono, sin Kafka).
-- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T08 hechas.
-- Siguiente paso: T09 (ingesta `POST /api/v1/events`: feliz, duplicados, 422, anomalía).
+- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T09 hechas.
+- Siguiente paso: T10 (errores 400 de validación con `errors[{field,message}]`, CA3, CA5).
 - Código: monorepo Maven; `pom.xml` raíz es el padre (`packaging=pom`) y módulo
   `api/` con el proyecto de Initializr. `simulator/` se añade en T13.
 
@@ -28,6 +28,7 @@
   `reset-state.sql` antes y después de cada test.
 - Errores de Spring MVC traducidos en `messages.properties` (`problemDetail.*`); siempre
   en español, sin depender de `Accept-Language` (`ApiErrorsIT`).
+- Duplicado → log INFO; zona desconocida y EXIT en 0 → log WARN; siempre con `eventId`.
 - Migraciones aplicadas: V1 (esquema), V2 (4 zonas). No editarlas: cualquier cambio
   va en V3+.
 

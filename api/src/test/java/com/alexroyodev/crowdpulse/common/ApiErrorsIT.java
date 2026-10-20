@@ -58,6 +58,21 @@ class ApiErrorsIT {
 	}
 
 	@Test
+	void nonJsonBodyIsUnsupportedMediaType() {
+		client.post().uri("/api/v1/events")
+				.contentType(MediaType.TEXT_PLAIN)
+				.body("hola")
+				.exchange()
+				.expectStatus().isEqualTo(415)
+				.expectBody()
+				.jsonPath("$.title").isEqualTo("Tipo de contenido no soportado")
+				.jsonPath("$.detail").value(String.class,
+						// The client adds ";charset=UTF-8" to the content type it sends.
+						detail -> assertThat(detail).startsWith("El tipo de contenido 'text/plain")
+								.contains("no está soportado. Tipos aceptados: [application/json"));
+	}
+
+	@Test
 	void textsAreSpanishWhateverTheClientLanguage() {
 		client.delete().uri("/api/v1/zones")
 				.header("Accept-Language", "en-US")

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import com.alexroyodev.crowdpulse.zone.UnknownZoneException;
 import com.alexroyodev.crowdpulse.zone.ZoneNotFoundException;
 
 /**
@@ -24,6 +25,15 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND,
 				"No existe la zona '" + ex.zoneId() + "'.");
 		problem.setTitle("Zona no encontrada");
+		problem.setProperty("zoneId", ex.zoneId());
+		return problem;
+	}
+
+	@ExceptionHandler(UnknownZoneException.class)
+	ProblemDetail handleUnknownZone(UnknownZoneException ex) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT,
+				"La zona '" + ex.zoneId() + "' no existe en el catálogo.");
+		problem.setTitle("Zona desconocida");
 		problem.setProperty("zoneId", ex.zoneId());
 		return problem;
 	}

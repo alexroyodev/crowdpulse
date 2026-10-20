@@ -82,7 +82,7 @@ la revisa antes de empezar la siguiente.
     CA9 (`/NOEXISTE` → 404 `ProblemDetail`); `norte` en minúsculas → 404.
   - **Verificación:** `./mvnw verify`; `curl` a ambos endpoints y al 404.
 
-- [ ] **T09 — Ingesta: camino feliz, duplicados, zona desconocida y anomalía** (plan §3.4)
+- [x] **T09 — Ingesta: camino feliz, duplicados, zona desconocida y anomalía** (plan §3.4)
   - `event.EventRequest`, `event.SensorEvent`, `event.SensorEventRepository`
     (`INSERT ... ON CONFLICT DO NOTHING`), `occupancy.OccupancyRepository`
     (`SELECT ... FOR UPDATE` y `UPDATE`), `event.EventService` (`@Transactional`),
