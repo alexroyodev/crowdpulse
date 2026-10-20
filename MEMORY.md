@@ -2,8 +2,8 @@
 
 ## Estado actual
 - Fase: 1 (MVP síncrono, sin Kafka).
-- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T03 hechas.
-- Siguiente paso: T04 (migraciones Flyway V1 esquema + V2 zonas, `MigrationIT`).
+- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T04 hechas.
+- Siguiente paso: T05 (dominio `Occupancy` + `EventType`, `OccupancyTest`).
 - Código: monorepo Maven; `pom.xml` raíz es el padre (`packaging=pom`) y módulo
   `api/` con el proyecto de Initializr. `simulator/` se añade en T13.
 
@@ -18,7 +18,8 @@
   específico de PostgreSQL); bloqueo pesimista `FOR UPDATE` por zona; módulos `api/`
   + `simulator/` (Java plano); `postgres:18` fijado; un `EXIT` anómalo sí actualiza
   `lastEventAt`.
-
+- Migraciones aplicadas: V1 (esquema), V2 (4 zonas). No editarlas: cualquier cambio
+  va en V3+.
 
 ## Problemas abiertos
 - (ninguno)

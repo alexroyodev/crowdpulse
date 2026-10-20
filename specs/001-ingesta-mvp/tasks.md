@@ -40,11 +40,11 @@ la revisa antes de empezar la siguiente.
     `./mvnw -pl api spring-boot:run` y `curl localhost:8080/actuator/health` →
     `{"status":"UP"}`; los logs salen en JSON. (Comprueba el riesgo 5 del plan.)
 
-- [ ] **T04 — Migraciones** (plan §3.3)
+- [x] **T04 — Migraciones** (plan §3.3)
   - `V1__create_schema.sql` (tablas `zone`, `zone_occupancy`, `sensor_event`).
   - `V2__seed_zones.sql` (4 zonas + ocupación 0).
   - `MigrationIT`: sobre una base vacía existen las 4 zonas con su capacidad y la
-    ocupación a 0; un `INSERT` con `occupancy = -1` falla por el `CHECK`.
+    ocupación a 0; un `UPDATE` a `occupancy = -1` falla por el `CHECK`.
   - **Verificación:** `./mvnw verify`; `\dt` con `psql` en el contenedor de compose
     muestra las tablas y `flyway_schema_history`.
 
