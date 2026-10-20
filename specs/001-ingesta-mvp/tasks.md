@@ -50,7 +50,7 @@ la revisa antes de empezar la siguiente.
 
 ## Bloque B — Dominio (sin Spring)
 
-- [ ] **T05 — `Occupancy` y `EventType`** (plan §3.5)
+- [x] **T05 — `Occupancy` y `EventType`** (plan §3.5)
   - `occupancy.Occupancy`, `occupancy.OccupancyChange`, `event.EventType`.
   - `OccupancyTest`: ENTRY suma; EXIT resta; EXIT en 0 → 0 y `anomaly = true`
     (regla 5); supera la capacidad sin tope (regla 6); `lastEventAt` se queda con el

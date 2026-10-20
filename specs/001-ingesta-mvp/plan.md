@@ -56,7 +56,9 @@ Java y de Spring Boot, y `./mvnw verify` no cubriría todo con un solo comando.
 | `common` | `ClockConfig` (bean `Clock`), `ApiExceptionHandler` (`ProblemDetail`) |
 
 `event` depende de `occupancy` y de `zone` (para la excepción); `zone` depende de
-`occupancy` solo para leer. No hay dependencias en sentido contrario.
+`occupancy` solo para leer. La única dependencia en sentido contrario es que
+`occupancy` usa el enum `event.EventType` en `Occupancy.apply`: la ocupación es una
+función de los eventos, así que conoce su tipo (corregido en T05).
 
 ### 3.2 Acceso a datos: `JdbcClient` en lugar de JPA ⚠️ (cambia dependencias)
 
