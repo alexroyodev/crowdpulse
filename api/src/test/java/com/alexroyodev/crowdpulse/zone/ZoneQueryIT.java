@@ -102,12 +102,4 @@ class ZoneQueryIT {
 				.expectStatus().isNotFound();
 	}
 
-	@Test
-	void unknownRouteAlsoAnswersWithProblemDetail() {
-		client.get().uri("/api/v1/nothing-here")
-				.exchange()
-				.expectStatus().isNotFound()
-				.expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON);
-	}
-
 }

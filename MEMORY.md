@@ -26,12 +26,12 @@
   (POST, 422): misma causa, distinto significado HTTP.
 - ITs comparten contexto y contenedor: los que cambian datos usan `@Sql`
   `reset-state.sql` antes y después de cada test.
+- Errores de Spring MVC traducidos en `messages.properties` (`problemDetail.*`); siempre
+  en español, sin depender de `Accept-Language` (`ApiErrorsIT`).
 - Migraciones aplicadas: V1 (esquema), V2 (4 zonas). No editarlas: cualquier cambio
   va en V3+.
 
 ## Problemas abiertos
-- Errores generados por Spring MVC (405, ruta inexistente...) salen con `detail` en
-  inglés. ¿Traducirlos (MessageSource) o aceptarlo? Pendiente de decidir.
 - T10: comprobar por HTTP que Spring crea `NotTooFarInFutureValidator` inyectando
   `Clock` y `EventProperties` (hoy solo está probado con un test unitario).
 
