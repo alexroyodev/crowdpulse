@@ -65,7 +65,7 @@ la revisa antes de empezar la siguiente.
     un caso de borde de redondeo (p. ej. 1/8 000 = 0.0125 → 0.0).
   - **Verificación:** `./mvnw test`.
 
-- [ ] **T07 — Validador `@NotTooFarInFuture`** (plan §3.6)
+- [x] **T07 — Validador `@NotTooFarInFuture`** (plan §3.6)
   - Anotación + `ConstraintValidator` con `Clock` y tolerancia por constructor.
   - `common.ClockConfig` con `Clock.systemUTC()`.
   - `NotTooFarInFutureValidatorTest` (CA5) con `Clock.fixed`: +4 min ✔, +5 min ✔,

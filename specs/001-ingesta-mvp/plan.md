@@ -50,7 +50,7 @@ Java y de Spring Boot, y `./mvnw verify` no cubriría todo con un solo comando.
 
 | Paquete | Contenido |
 |---------|-----------|
-| `event` | `EventController`, `EventRequest` (record), `EventType` (enum), `EventService`, `SensorEvent` (record), `SensorEventRepository`, validación `@NotTooFarInFuture` |
+| `event` | `EventController`, `EventRequest` (record), `EventType` (enum), `EventService`, `SensorEvent` (record), `SensorEventRepository`, validación `@NotTooFarInFuture`, `EventProperties` (`crowdpulse.events.*`) |
 | `occupancy` | `Occupancy` (record de dominio puro), `OccupancyChange`, `OccupancyRepository` |
 | `zone` | `ZoneController`, `ZoneView` (record de respuesta), `ZoneQueryRepository`, `UnknownZoneException` |
 | `common` | `ClockConfig` (bean `Clock`), `ApiExceptionHandler` (`ProblemDetail`) |

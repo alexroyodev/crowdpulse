@@ -2,8 +2,8 @@
 
 ## Estado actual
 - Fase: 1 (MVP síncrono, sin Kafka).
-- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T06 hechas.
-- Siguiente paso: T07 (validador `@NotTooFarInFuture` + `ClockConfig`).
+- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T07 hechas.
+- Siguiente paso: T08 (consulta de zonas: `GET /api/v1/zones[/{zoneId}]`, `ZoneQueryIT`).
 - Código: monorepo Maven; `pom.xml` raíz es el padre (`packaging=pom`) y módulo
   `api/` con el proyecto de Initializr. `simulator/` se añade en T13.
 
@@ -20,12 +20,16 @@
   `lastEventAt`.
 - `occupancy` usa `event.EventType` (única dependencia hacia `event`): la ocupación
   es función de los eventos. `Occupancy` es inmutable y valida `value >= 0`.
+- Configuración propia en records `@ConfigurationProperties` (p. ej. `EventProperties`)
+  en vez de `@Value`: tipada y validada al arrancar.
 - Migraciones aplicadas: V1 (esquema), V2 (4 zonas). No editarlas: cualquier cambio
   va en V3+.
 
 ## Problemas abiertos
 - T08: comprobar en el IT que Jackson 3 serializa `occupancyPct` como número con un
   decimal (`0.0`, `61.7`) y `lastEventAt` como ISO-8601 (no timestamp numérico).
+- T10: comprobar por HTTP que Spring crea `NotTooFarInFutureValidator` inyectando
+  `Clock` y `EventProperties` (hoy solo está probado con un test unitario).
 
 ## Errores a evitar
 - En Windows, parar `./mvnw spring-boot:run` deja vivo el `java.exe` hijo en el 8080:
