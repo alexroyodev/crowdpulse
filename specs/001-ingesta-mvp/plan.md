@@ -282,9 +282,10 @@ gratis, pero arrastra un framework entero para un bucle que envía peticiones.
 |-------|-----------------|
 | `SimulatorConfig` (record) | Parsea y valida los argumentos `--clave=valor` |
 | `TrafficGenerator` | Decide el siguiente evento de una zona. Sin E/S; recibe `Random` (con semilla en tests) y el progreso de la simulación (0.0–1.0) |
-| `EventSender` | Envía un evento con `HttpClient` y devuelve el código de estado |
-| `SimulationReport` | Cuenta enviados, duplicados, respuestas por código y ocupación esperada por zona |
-| `Main` | Arranca un hilo por zona, espera a que terminen e imprime el informe |
+| `ApiClient` | Envía un evento con `HttpClient` y devuelve el código de estado; lee la ocupación de `GET /api/v1/zones` |
+| `ZoneRunner` / `ZoneResult` | Bucle de envío de una zona a ritmo fijo; devuelve sus contadores (sin estado compartido entre hilos) |
+| `SimulationReport` | Suma enviados, duplicados y respuestas por código, y comprueba CA10: cambio de ocupación en la API = esperado |
+| `Main` | Arranca un hilo por zona, espera a que terminen e imprime el informe (código de salida 0 si CA10 se cumple) |
 
 - **Perfil de llegada/salida:** la probabilidad de `ENTRY` baja linealmente de 0,9 al
   inicio a 0,1 al final. El generador lleva la ocupación simulada de su zona y, si es

@@ -2,8 +2,8 @@
 
 ## Estado actual
 - Fase: 1 (MVP síncrono, sin Kafka).
-- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T14 hechas (API completa).
-- Siguiente paso: T15 (envío, ritmo e informe del simulador; demo CA10).
+- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T15 hechas (API y simulador).
+- Siguiente paso: T16 (ADRs 0001 y 0002).
 - Código: monorepo Maven; `pom.xml` raíz es el padre; módulos `api/` y `simulator/`
   (Java plano, solo JUnit en test, JAR `simulator/target/simulator.jar`).
 
@@ -36,6 +36,8 @@
   va en V3+.
 
 ## Problemas abiertos
+- Demo CA10 OK (6 000 eventos, 202=6000), pero con P(ENTRY) 0,9→0,1 el estadio acaba
+  casi vacío y la comprobación final es débil. Propuesto 0,9→0,3: pendiente del autor.
 
 ## Errores a evitar
 - En Windows, parar `./mvnw spring-boot:run` deja vivo el `java.exe` hijo en el 8080:

@@ -138,9 +138,9 @@ la revisa antes de empezar la siguiente.
     configurado.
   - **Verificación:** `./mvnw test`.
 
-- [ ] **T15 — Envío, ritmo e informe** (plan §4.2)
-  - `EventSender` (`HttpClient`, JSON con *text block*), `SimulationReport`, `Main`
-    (un hilo por zona, envío síncrono, ritmo por instante objetivo).
+- [x] **T15 — Envío, ritmo e informe** (plan §4.2)
+  - `ApiClient` (`HttpClient`, JSON con *text block*), `ZoneRunner`, `SimulationReport`,
+    `Main` (un hilo por zona, envío síncrono, ritmo por instante objetivo).
   - **Verificación (CA10):** con compose y la API en marcha,
     `java -jar simulator/target/simulator.jar --rate=100 --duration=60s --duplicates=5`
     → tasa real ≥ 100 ev/s, cero 5xx, y la ocupación esperada por zona coincide con
