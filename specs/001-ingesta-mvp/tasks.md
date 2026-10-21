@@ -113,7 +113,7 @@ la revisa antes de empezar la siguiente.
   - **Verificación:** `./mvnw verify`, ejecutado 3 veces seguidas en verde (un test de
     concurrencia que pasa una vez no demuestra nada).
 
-- [ ] **T12 — Persistencia tras reinicio** (plan §6.2)
+- [x] **T12 — Persistencia tras reinicio** (plan §6.2)
   - `RestartIT`: contenedor estático compartido; arrancar la app, enviar eventos,
     cerrar el contexto, arrancar otro y comprobar la misma ocupación (CA8).
   - **Verificación:** `./mvnw verify`; manual: enviar eventos con `curl`, parar y
