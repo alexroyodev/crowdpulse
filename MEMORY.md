@@ -2,8 +2,8 @@
 
 ## Estado actual
 - Fase: 1 (MVP síncrono, sin Kafka).
-- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T10 hechas.
-- Siguiente paso: T11 (`ConcurrentIngestionIT`, CA6).
+- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T11 hechas.
+- Siguiente paso: T12 (`RestartIT`, CA8).
 - Código: monorepo Maven; `pom.xml` raíz es el padre (`packaging=pom`) y módulo
   `api/` con el proyecto de Initializr. `simulator/` se añade en T13.
 
@@ -30,6 +30,8 @@
   en español: locale fijo `es` (`spring.web.locale-resolver: fixed`), también para los
   mensajes de Bean Validation.
 - Duplicado → log INFO; zona desconocida y EXIT en 0 → log WARN; siempre con `eventId`.
+- CA6 verificado con mutación: sin `FOR UPDATE`, 1 000 ENTRY concurrentes → 169.
+  Los duplicados concurrentes los protege la PK (`ON CONFLICT`), no el bloqueo.
 - Migraciones aplicadas: V1 (esquema), V2 (4 zonas). No editarlas: cualquier cambio
   va en V3+.
 

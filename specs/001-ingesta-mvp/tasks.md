@@ -107,7 +107,7 @@ la revisa antes de empezar la siguiente.
   - **Verificación:** `./mvnw verify`; `curl` de cada caso; ninguna respuesta contiene
     trazas.
 
-- [ ] **T11 — Concurrencia** (plan §3.4, regla 4)
+- [x] **T11 — Concurrencia** (plan §3.4, regla 4)
   - `ConcurrentIngestionIT`: CA6 (1 000 ENTRY distintos a `NORTE` desde 20 hilos →
     1 000); el mismo evento enviado desde 20 hilos a la vez → ocupación 1 y una fila.
   - **Verificación:** `./mvnw verify`, ejecutado 3 veces seguidas en verde (un test de
