@@ -31,7 +31,7 @@ public record ZoneView(
 	 * BigDecimal instead of double so that rounding is exact: 61.725 always becomes 61.7,
 	 * with no binary floating-point surprises.
 	 */
-	static BigDecimal percentage(int occupancy, int capacity) {
+	public static BigDecimal percentage(int occupancy, int capacity) {
 		if (capacity <= 0) {
 			throw new IllegalArgumentException("Capacity must be positive: " + capacity);
 		}

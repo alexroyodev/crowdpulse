@@ -44,7 +44,7 @@ verde y `MEMORY.md` está actualizado. Al terminar se marca `[x]`.
 
 ## Bloque C — Integración en la API
 
-- [ ] **T04 — Evaluar y registrar el cambio de nivel** (plan §1, §4)
+- [x] **T04 — Evaluar y registrar el cambio de nivel** (plan §1, §4)
   - `OccupancyRepository`: `lockByZoneId` → `LockedZone` (ocupación, nivel, capacidad);
     `update` guarda también el nivel.
   - `alert.Alert` y `alert.AlertRepository.insert`.

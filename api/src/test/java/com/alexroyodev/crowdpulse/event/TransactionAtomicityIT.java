@@ -52,7 +52,7 @@ class TransactionAtomicityIT {
 
 	@Test
 	void eventIsNotStoredWhenTheOccupancyUpdateFails() {
-		doThrow(new IllegalStateException("simulated failure")).when(occupancies).update(eq("NORTE"), any());
+		doThrow(new IllegalStateException("simulated failure")).when(occupancies).update(eq("NORTE"), any(), any());
 		UUID eventId = UUID.randomUUID();
 		String body = """
 				{"eventId":"%s","sensorId":"NORTE-P01","zoneId":"NORTE","type":"ENTRY","occurredAt":"%s"}

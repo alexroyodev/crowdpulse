@@ -5,7 +5,7 @@
 - Spec 001 (`specs/001-ingesta-mvp/`): **terminada** (2026-10-21). CA1–CA11
   verificados; tabla al final de `tasks.md`.
 - Spec activa: `specs/002-alertas-umbrales/` — spec y plan aprobados (2026-10-21,
-  incluidas V3 y V4) y tareas aprobadas. T01–T03 hechas. Siguiente paso: T04.
+  incluidas V3 y V4) y tareas aprobadas. T01–T04 hechas. Siguiente paso: T05.
 - Código: monorepo Maven; `pom.xml` raíz es el padre; módulos `api/` (Spring Boot 4.1)
   y `simulator/` (Java plano). 80 tests (`./mvnw verify`).
 
@@ -36,5 +36,7 @@
 - (ninguno)
 
 ## Errores a evitar
+- Git Bash no tiene `/proc/sys/kernel/random/uuid` ni `uuidgen`: UUIDs con
+  `powershell.exe -NoProfile -Command '[guid]::NewGuid().ToString()' | tr -d ''`.
 - Notas de Windows (java 17 en el PATH, `java.exe` vivo en el 8080, acentos en Git
   Bash, Docker Desktop parado): ver `CLAUDE.md` › Comandos.
