@@ -2,8 +2,8 @@
 
 ## Estado actual
 - Fase: 1 (MVP síncrono, sin Kafka).
-- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T13 hechas (API completa).
-- Siguiente paso: T14 (`TrafficGenerator`).
+- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T14 hechas (API completa).
+- Siguiente paso: T15 (envío, ritmo e informe del simulador; demo CA10).
 - Código: monorepo Maven; `pom.xml` raíz es el padre; módulos `api/` y `simulator/`
   (Java plano, solo JUnit en test, JAR `simulator/target/simulator.jar`).
 
