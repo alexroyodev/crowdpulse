@@ -36,13 +36,13 @@ class ZoneQueryIT {
 	}
 
 	@Test
-	void listsTheFourZonesOrderedByZoneId() {
+	void listsEveryZoneOrderedByZoneId() {
 		client.get().uri("/api/v1/zones")
 				.exchange()
 				.expectStatus().isOk()
 				.expectBody()
-				.jsonPath("$.length()").isEqualTo(4)
-				.jsonPath("$[*].zoneId").isEqualTo(List.of("ESTE", "NORTE", "OESTE", "SUR"))
+				.jsonPath("$.length()").isEqualTo(5)
+				.jsonPath("$[*].zoneId").isEqualTo(List.of("ESTE", "NORTE", "OESTE", "PALCO", "SUR"))
 				.jsonPath("$[1].name").isEqualTo("Fondo Norte")
 				.jsonPath("$[1].capacity").isEqualTo(20000)
 				.jsonPath("$[1].occupancy").isEqualTo(0)

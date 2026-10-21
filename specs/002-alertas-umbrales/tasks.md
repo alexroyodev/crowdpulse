@@ -1,6 +1,6 @@
 # Tareas 002 — Alertas de ocupación por umbrales
 
-- **Estado:** Borrador, pendiente de revisión
+- **Estado:** Aprobado (2026-10-21)
 - **Spec:** [`spec.md`](spec.md) · **Plan:** [`plan.md`](plan.md)
 
 Una tarea cada vez. Está terminada cuando su verificación pasa, `./mvnw verify` está en
@@ -10,7 +10,7 @@ verde y `MEMORY.md` está actualizado. Al terminar se marca `[x]`.
 
 ## Bloque A — Esquema
 
-- [ ] **T01 — Migraciones V3 y V4** (plan §2)
+- [x] **T01 — Migraciones V3 y V4** (plan §2)
   - `V3__add_alert_level_and_history.sql`: columna `alert_level`, nivel inicial
     (regla 11) y tabla `alert`.
   - `V4__add_demo_zone_palco.sql`: zona `PALCO` («Palco VIP», 200) y su fila de ocupación.
@@ -18,6 +18,8 @@ verde y `MEMORY.md` está actualizado. Al terminar se marca `[x]`.
   - `MigrationIT`: 5 zonas (con `PALCO`), todas en `NORMAL`; un `alert_level` inválido
     falla por el `CHECK`; un segundo `alert` con el mismo `event_id` falla por `UNIQUE`.
   - `ZoneQueryIT`: el listado pasa a 5 zonas.
+  - `InitialAlertLevelMigrationIT` (añadido): regla 11 con una base migrada hasta V2 que
+    ya tiene ocupación.
   - **Verificación:** `./mvnw verify`; `psql` en el contenedor de compose muestra
     `alert`, la columna nueva y `flyway_schema_history` con V3 y V4.
 

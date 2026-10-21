@@ -5,7 +5,7 @@
 - Spec 001 (`specs/001-ingesta-mvp/`): **terminada** (2026-10-21). CA1–CA11
   verificados; tabla al final de `tasks.md`.
 - Spec activa: `specs/002-alertas-umbrales/` — spec y plan aprobados (2026-10-21,
-  incluidas V3 y V4); `tasks.md` (T01–T09) en borrador. Siguiente paso: aprobarlo y T01.
+  incluidas V3 y V4) y tareas aprobadas. T01 hecha. Siguiente paso: T02.
 - Código: monorepo Maven; `pom.xml` raíz es el padre; módulos `api/` (Spring Boot 4.1)
   y `simulator/` (Java plano). 80 tests (`./mvnw verify`).
 
@@ -29,11 +29,11 @@
   → el evento queda guardado. Duplicados concurrentes: los protege la PK, no el bloqueo.
 - Simulador: un hilo por zona con envío síncrono (orden por zona); P(ENTRY) 0,9→0,3
   para que al final quede gente y CA10 compare números reales; comprueba CA10 solo.
-- Migraciones aplicadas: V1 (esquema), V2 (4 zonas). No editarlas: cambios en V3+.
+- Migraciones aplicadas: V1 (esquema), V2 (4 zonas), V3 (nivel de alerta + tabla
+  `alert`), V4 (zona `PALCO`). No editarlas: cambios en V5+.
 
 ## Problemas abiertos
-- Spec 002 añade la zona `PALCO`: `MigrationIT` y `ZoneQueryIT` comprueban
-  exactamente 4 zonas y habrá que actualizarlos (cambio de catálogo aprobado, D3).
+- (ninguno)
 
 ## Errores a evitar
 - Notas de Windows (java 17 en el PATH, `java.exe` vivo en el 8080, acentos en Git
