@@ -2,12 +2,12 @@
 
 ## Estado actual
 - Fase: 1 (MVP síncrono, sin Kafka). Objetivo de la fase cumplido.
-- Spec 001 (`specs/001-ingesta-mvp/`): **terminada** (2026-10-21). CA1–CA11
-  verificados; tabla al final de `tasks.md`.
-- Spec activa: `specs/002-alertas-umbrales/` — spec y plan aprobados (2026-10-21,
-  incluidas V3 y V4) y tareas aprobadas. T01–T08 hechas. Siguiente paso: T09 (cierre).
+- Specs 001 (ingesta) y 002 (alertas): **terminadas** (2026-10-21); la verificación de
+  cada CA está al final de su `tasks.md`.
+- Siguiente paso: el autor decide la spec 003 (la fase 2 de la constitución: Kafka y
+  el servicio `processor`).
 - Código: monorepo Maven; `pom.xml` raíz es el padre; módulos `api/` (Spring Boot 4.1)
-  y `simulator/` (Java plano). 80 tests (`./mvnw verify`).
+  y `simulator/` (Java plano). 121 tests (`./mvnw verify`).
 
 ## Decisiones (y su porqué)
 - Maven y Java 21 LTS; Flyway desde el día 1; sin Lombok: código explícito y
@@ -15,6 +15,9 @@
 - `POST /events` responde 202 desde la fase 1: el contrato no cambia con Kafka.
 - JdbcClient en vez de JPA (ADR 0001); bloqueo pesimista `FOR UPDATE` por zona
   (ADR 0002). Un `EXIT` anómalo sí actualiza `lastEventAt`.
+- Alertas (ADR 0003): nivel decidido por `AlertPolicy` (pura, enteros exactos) dentro
+  de la transacción del evento y guardado en la fila bloqueada; 85/80 y 95/90 en
+  `crowdpulse.alerts`; histórico en `alert` (`event_id UNIQUE`, orden por `seq`).
 - `occupancy` usa `event.EventType`: la ocupación es función de los eventos.
 - Configuración propia en records `@ConfigurationProperties`, no `@Value`.
 - Zona inexistente: `ZoneNotFoundException` (GET, 404) / `UnknownZoneException`

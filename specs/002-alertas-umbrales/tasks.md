@@ -1,6 +1,6 @@
 # Tareas 002 — Alertas de ocupación por umbrales
 
-- **Estado:** Aprobado (2026-10-21)
+- **Estado:** Terminado (2026-10-21)
 - **Spec:** [`spec.md`](spec.md) · **Plan:** [`plan.md`](plan.md)
 
 Una tarea cada vez. Está terminada cuando su verificación pasa, `./mvnw verify` está en
@@ -82,7 +82,7 @@ verde y `MEMORY.md` está actualizado. Al terminar se marca `[x]`.
 
 ## Bloque D — Cierre
 
-- [ ] **T09 — Demo, documentación y verificación final** (CA11, CA12)
+- [x] **T09 — Demo, documentación y verificación final** (CA11, CA12)
   - Demo: `--zones=PALCO --rate=20 --duration=60s` → el histórico de `PALCO` tiene
     `NORMAL → WARNING` y `WARNING → CRITICAL`; el informe del simulador acaba en OK.
   - `docs/adr/0003-nivel-de-alerta-en-la-transaccion-del-evento.md`.
@@ -91,3 +91,23 @@ verde y `MEMORY.md` está actualizado. Al terminar se marca `[x]`.
   - Tabla de verificación de los CA al final de este fichero; spec y tareas terminadas;
     `MEMORY.md` actualizado.
   - **Verificación:** todos los CA con test o verificación manual registrada.
+
+---
+
+## Verificación de los criterios de aceptación
+
+| CA | Cómo se verifica | Resultado |
+|----|------------------|-----------|
+| CA1 | `AlertIT.reachingEightyFivePercentRaisesWarning`; manual con `curl` + `psql` sobre `PALCO` | ✅ |
+| CA2 | `AlertIT.warningIsKeptDownToEightyPercentAndClearedBelowIt` (1 000 `EXIT` por HTTP) | ✅ |
+| CA3 | `AlertIT.oscillatingAroundTheThresholdRecordsASingleChange`; `AlertPolicyTest` (mutación sin histéresis → 4 fallos) | ✅ |
+| CA4 | `AlertIT.criticalFromNinetyFivePercentStaysAboveCapacityAndClearsBelowNinety`; `AlertPolicyTest` | ✅ |
+| CA5 | `AlertIT.resendingTheEventThatChangedTheLevelRecordsNothingMore` | ✅ |
+| CA6 | `AlertAtomicityIT` (mutación sin `@Transactional` → falla) | ✅ |
+| CA7 | `ConcurrentAlertIT`, 3 ejecuciones seguidas (mutación sin `FOR UPDATE` → 16 992 de 17 010) | ✅ |
+| CA8 | `AlertIT` (orden, `zoneId`, `limit`, `[]`, 404, 400) y `curl` de cada caso | ✅ |
+| CA9 | `AlertIT.everyLevelChangeIsLoggedAsWarning` (log capturado) y log real en la demo | ✅ |
+| CA10 | `RestartIT.alertLevelAndHistorySurviveARestart` | ✅ |
+| CA11 | Demo (2026-10-21): `--zones=PALCO --rate=20 --duration=60s` → 1 200 × 202, `NORMAL → WARNING` (170) y `WARNING → CRITICAL` (190) | ✅ |
+| CA12 | `git clone` de GitHub en un directorio limpio + `./mvnw verify` (2026-10-21): 121 tests en verde | ✅ |
+| Regla 11 | `InitialAlertLevelMigrationIT` (base migrada hasta V2 con ocupación, luego V3) | ✅ |
