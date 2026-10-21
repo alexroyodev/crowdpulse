@@ -37,8 +37,10 @@ class TrafficGenerator {
 			return sent.get(random.nextInt(sent.size())).asDuplicate();
 		}
 
-		// Crowd arrives at the start and leaves at the end: P(ENTRY) goes from 0.9 down to 0.1.
-		double entryProbability = 0.9 - 0.8 * Math.clamp(progress, 0.0, 1.0);
+		// Crowd arrives at the start and leaves at the end: P(ENTRY) goes from 0.9 down to 0.3.
+		// Ending at 0.3 rather than 0.1 leaves people inside, so the final CA10 check compares
+		// real numbers instead of zones that are back at 0.
+		double entryProbability = 0.9 - 0.6 * Math.clamp(progress, 0.0, 1.0);
 		boolean entry = occupancy == 0 || random.nextDouble() < entryProbability;
 		occupancy += entry ? 1 : -1;
 

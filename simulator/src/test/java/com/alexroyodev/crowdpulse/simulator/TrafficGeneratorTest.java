@@ -59,6 +59,16 @@ class TrafficGeneratorTest {
 	}
 
 	@Test
+	void stadiumIsNotEmptyAtTheEnd() {
+		// P(ENTRY) 0.9 -> 0.3 leaves about 20 % of the events as people inside, so the CA10
+		// check at the end compares real numbers. Asserting > 10 % leaves room for randomness.
+		TrafficGenerator generator = generator(0);
+		run(generator);
+
+		assertTrue(generator.occupancy() > STEPS / 10, "final occupancy was " + generator.occupancy());
+	}
+
+	@Test
 	void occupancyEqualsUniqueEntriesMinusUniqueExits() {
 		TrafficGenerator generator = generator(10);
 		List<SimulatedEvent> unique = run(generator).stream().filter(e -> !e.duplicate()).toList();

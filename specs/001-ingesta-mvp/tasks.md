@@ -131,7 +131,7 @@ la revisa antes de empezar la siguiente.
     muestra un error comprensible.
 
 - [x] **T14 — `TrafficGenerator`** (plan §4.2)
-  - Probabilidad de ENTRY de 0,9 → 0,1 según el progreso; ENTRY forzado con ocupación 0;
+  - Probabilidad de ENTRY de 0,9 → 0,3 según el progreso (era 0,1; ver plan §4.2); ENTRY forzado con ocupación 0;
     reenvío de duplicados con la probabilidad configurada; `sensorId` `{zona}-P01..05`.
   - `TrafficGeneratorTest` (semilla fija): nunca negativa en 10 000 pasos; más ENTRY
     en el primer 10 % y más EXIT en el último 10 %; ratio de duplicados ≈ el

@@ -288,7 +288,8 @@ gratis, pero arrastra un framework entero para un bucle que envía peticiones.
 | `Main` | Arranca un hilo por zona, espera a que terminen e imprime el informe (código de salida 0 si CA10 se cumple) |
 
 - **Perfil de llegada/salida:** la probabilidad de `ENTRY` baja linealmente de 0,9 al
-  inicio a 0,1 al final. El generador lleva la ocupación simulada de su zona y, si es
+  inicio a 0,3 al final (cambiado de 0,1 en T15: con 0,1 el estadio acababa casi vacío y
+  la comprobación de CA10 era débil; con 0,3 quedan ~20 % de los eventos como ocupación). El generador lleva la ocupación simulada de su zona y, si es
   0, fuerza un `ENTRY`: nunca es negativa.
 - **Un hilo por zona, envíos síncronos dentro de cada hilo.** Los eventos de una zona
   llegan a la API en el orden en que se generan, así que la API nunca ve un `EXIT`
