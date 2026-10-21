@@ -1,6 +1,6 @@
 # Plan 002 — Alertas de ocupación por umbrales
 
-- **Estado:** Borrador, pendiente de revisión
+- **Estado:** Aprobado (2026-10-21)
 - **Spec:** [`spec.md`](spec.md)
 - **Fase:** 1
 - **Fecha:** 2026-10-21
