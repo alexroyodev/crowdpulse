@@ -59,7 +59,7 @@ verde y `MEMORY.md` está actualizado. Al terminar se marca `[x]`.
   - `ZoneQueryIT`: JSON exacto con `alertLevel`; una zona en `WARNING` lo muestra.
   - **Verificación:** `./mvnw verify`; `curl localhost:8080/api/v1/zones`.
 
-- [ ] **T06 — `GET /api/v1/alerts`** (plan §3, §4)
+- [x] **T06 — `GET /api/v1/alerts`** (plan §3, §4)
   - `alert.AlertView`, consulta del histórico en `AlertRepository` (`ORDER BY seq DESC`,
     `zoneId`, `limit`), `alert.AlertController`.
   - `ApiExceptionHandler` + `messages.properties`: 400 de `limit` con `errors`.

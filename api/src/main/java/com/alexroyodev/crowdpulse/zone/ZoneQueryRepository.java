@@ -14,7 +14,7 @@ import com.alexroyodev.crowdpulse.alert.AlertLevel;
 
 /** Read side of the zone endpoints: catalogue joined with current occupancy. No cache (CA8). */
 @Repository
-class ZoneQueryRepository {
+public class ZoneQueryRepository {
 
 	private static final String SELECT_ZONES = """
 			SELECT z.zone_id, z.name, z.capacity, o.occupancy, o.last_event_at, o.alert_level
@@ -39,6 +39,13 @@ class ZoneQueryRepository {
 				.param("zoneId", zoneId)
 				.query(ZoneQueryRepository::toView)
 				.optional();
+	}
+
+	public boolean exists(String zoneId) {
+		return jdbc.sql("SELECT EXISTS (SELECT 1 FROM zone WHERE zone_id = :zoneId)")
+				.param("zoneId", zoneId)
+				.query(Boolean.class)
+				.single();
 	}
 
 	private static ZoneView toView(ResultSet rs, int rowNum) throws SQLException {

@@ -9,6 +9,7 @@ import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import com.alexroyodev.crowdpulse.event.EventRequest;
@@ -69,6 +72,34 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 				.addKeyValue("fields", errors.stream().map(FieldProblem::field).toList())
 				.log();
 		return withErrors(super.handleHttpMessageNotReadable(ex, headers, status, request), errors);
+	}
+
+	/** 400: a constraint on a request parameter failed (e.g. {@code limit} outside 1-500). */
+	@Override
+	protected ResponseEntity<Object> handleHandlerMethodValidationException(HandlerMethodValidationException ex,
+			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+		List<FieldProblem> errors = ex.getParameterValidationResults().stream()
+				.flatMap(result -> result.getResolvableErrors().stream()
+						.map(error -> new FieldProblem(result.getMethodParameter().getParameterName(),
+								error.getDefaultMessage())))
+				.sorted(comparing(FieldProblem::field))
+				.toList();
+		log.atWarn().setMessage("Request rejected: invalid parameters")
+				.addKeyValue("fields", errors.stream().map(FieldProblem::field).toList())
+				.log();
+		return withErrors(super.handleHandlerMethodValidationException(ex, headers, status, request), errors);
+	}
+
+	/** 400: a request parameter cannot become its Java type (e.g. {@code limit=abc}). */
+	@Override
+	protected ResponseEntity<Object> handleTypeMismatch(TypeMismatchException ex, HttpHeaders headers,
+			HttpStatusCode status, WebRequest request) {
+		String field = ex instanceof MethodArgumentTypeMismatchException mismatch ? mismatch.getName() : ex.getPropertyName();
+		List<FieldProblem> errors = List.of(new FieldProblem(field, "formato no válido"));
+		log.atWarn().setMessage("Request rejected: invalid parameters")
+				.addKeyValue("fields", List.of(field))
+				.log();
+		return withErrors(super.handleTypeMismatch(ex, headers, status, request), errors);
 	}
 
 	private static List<FieldProblem> fieldProblemOf(HttpMessageNotReadableException ex) {

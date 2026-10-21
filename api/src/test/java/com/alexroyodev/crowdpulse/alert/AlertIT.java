@@ -150,6 +150,103 @@ class AlertIT {
 				"\"to\":\"WARNING\"", "\"occupancyPct\":", "85.0", "\"eventId\":\"" + eventId + "\"");
 	}
 
+	// --- CA8: GET /api/v1/alerts ---
+
+	@Test
+	void historyIsEmptyWithoutChanges() {
+		client.get().uri("/api/v1/alerts")
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody().json("[]");
+	}
+
+	@Test
+	void historyListsTheNewestChangeFirst() {
+		UUID palcoWarning = UUID.randomUUID();
+		UUID norteWarning = UUID.randomUUID();
+		UUID palcoCritical = UUID.randomUUID();
+		givenZone("PALCO", 169, "NORMAL");
+		send(palcoWarning, "PALCO", "ENTRY");
+		givenZone("NORTE", 16_999, "NORMAL");
+		send(norteWarning, "NORTE", "ENTRY");
+		givenZone("PALCO", 189, "WARNING");
+		send(palcoCritical, "PALCO", "ENTRY");
+
+		client.get().uri("/api/v1/alerts")
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody()
+				.jsonPath("$.length()").isEqualTo(3)
+				.jsonPath("$[*].eventId").isEqualTo(List.of(palcoCritical.toString(), norteWarning.toString(),
+						palcoWarning.toString()))
+				.jsonPath("$[0].zoneId").isEqualTo("PALCO")
+				.jsonPath("$[0].from").isEqualTo("WARNING")
+				.jsonPath("$[0].to").isEqualTo("CRITICAL")
+				.jsonPath("$[0].occupancy").isEqualTo(190)
+				.jsonPath("$[0].capacity").isEqualTo(200)
+				.jsonPath("$[0].occupancyPct").isEqualTo(95.0)
+				.jsonPath("$[0].alertId").isNotEmpty()
+				.jsonPath("$[0].detectedAt").value(String.class,
+						detectedAt -> assertThat(detectedAt).matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z"));
+	}
+
+	@Test
+	void historyCanBeFilteredByZoneAndLimited() {
+		givenZone("PALCO", 169, "NORMAL");
+		send(UUID.randomUUID(), "PALCO", "ENTRY");
+		givenZone("NORTE", 16_999, "NORMAL");
+		send(UUID.randomUUID(), "NORTE", "ENTRY");
+		givenZone("PALCO", 189, "WARNING");
+		UUID newest = UUID.randomUUID();
+		send(newest, "PALCO", "ENTRY");
+
+		client.get().uri("/api/v1/alerts?zoneId=PALCO")
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody()
+				.jsonPath("$[*].zoneId").isEqualTo(List.of("PALCO", "PALCO"));
+		client.get().uri("/api/v1/alerts?limit=1")
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody()
+				.jsonPath("$.length()").isEqualTo(1)
+				.jsonPath("$[0].eventId").isEqualTo(newest.toString());
+	}
+
+	@Test
+	void unknownZoneFilterIsNotFound() {
+		client.get().uri("/api/v1/alerts?zoneId=NOEXISTE")
+				.exchange()
+				.expectStatus().isNotFound()
+				.expectBody()
+				.jsonPath("$.title").isEqualTo("Zona no encontrada")
+				.jsonPath("$.zoneId").isEqualTo("NOEXISTE");
+	}
+
+	@Test
+	void limitOutOfRangeIsBadRequestNamingTheParameter() {
+		for (String limit : List.of("0", "501")) {
+			client.get().uri("/api/v1/alerts?limit=" + limit)
+					.exchange()
+					.expectStatus().isBadRequest()
+					.expectBody()
+					.jsonPath("$.title").isEqualTo("Parámetros no válidos")
+					.jsonPath("$.errors[0].field").isEqualTo("limit");
+		}
+	}
+
+	@Test
+	void nonNumericLimitIsBadRequestNamingTheParameter() {
+		client.get().uri("/api/v1/alerts?limit=abc")
+				.exchange()
+				.expectStatus().isBadRequest()
+				.expectBody()
+				.jsonPath("$.title").isEqualTo("Parámetros no válidos")
+				.jsonPath("$.detail").isEqualTo("El parámetro 'limit' no admite el valor 'abc'.")
+				.jsonPath("$.errors[0].field").isEqualTo("limit")
+				.jsonPath("$.errors[0].message").isEqualTo("formato no válido");
+	}
+
 	private void givenZone(String zoneId, int occupancy, String level) {
 		jdbc.sql("UPDATE zone_occupancy SET occupancy = :occupancy, alert_level = :level WHERE zone_id = :zoneId")
 				.param("occupancy", occupancy)
