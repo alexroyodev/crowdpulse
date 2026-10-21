@@ -95,7 +95,10 @@ explicar cada línea en una entrevista. Simple y verificable antes que completo.
 - Integración con Testcontainers (PostgreSQL y, desde la fase 2, Kafka): nada de H2
   ni mocks de la base de datos.
 - Cada garantía tiene su test: evento duplicado, `EXIT` antes de `ENTRY`, reinicio
-  del consumidor sin perder eventos.
+  del consumidor sin perder eventos. Valídalo una vez quitando el mecanismo y viéndolo
+  fallar (constitución, principio 2). Con `-Dit.test=...` usa `-pl api`.
+- Los `*IT` comparten contexto y contenedor: si cambian datos, `@Sql("/reset-state.sql")`
+  antes y después de cada test.
 - Tras cada cambio de la API, levanta el entorno y prueba los endpoints con `curl`.
 - Dashboard (fase 4): verifica con el MCP de Chrome DevTools (consola sin errores,
   vista móvil).
@@ -107,6 +110,15 @@ explicar cada línea en una entrevista. Simple y verificable antes que completo.
 - Todos los tests (incl. integración): `./mvnw verify`
 - Ejecutar la API: `./mvnw -pl api spring-boot:run`
 - Salud: `curl localhost:8080/actuator/health`
+- Simulador: `./mvnw -pl simulator package` y
+  `java -jar simulator/target/simulator.jar --rate=100 --duration=60s --duplicates=5`
+
+### Notas de Windows
+- El `java` del PATH es 17: usa `$JAVA_HOME/bin/java` (JDK 21) para el simulador.
+- Parar `./mvnw spring-boot:run` deja vivo el `java.exe` hijo en el 8080: búscalo con
+  `netstat -ano | grep :8080` y páralo.
+- En Git Bash, `-Dstdout.encoding=UTF-8` para ver los acentos del simulador.
+- Docker Desktop no arranca solo tras reiniciar: sin él fallan todos los `*IT`.
 
 ## Reglas
 - Lee `docs/constitution.md` y la spec activa (`specs/NNN-*/`) antes de tocar código.

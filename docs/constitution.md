@@ -20,6 +20,8 @@ Ninguna abstracción "por si acaso": se introduce cuando hay un segundo caso rea
 "No se pierden eventos", "los duplicados no cuentan" o "el orden se respeta por zona"
 son afirmaciones que solo existen si un test automatizado las comprueba. Usar Kafka,
 transacciones o reintentos no es una garantía por sí mismo.
+Un test de garantía se valida una vez quitando el mecanismo que la da (el bloqueo, la
+transacción, la restricción...) y comprobando que falla; si sigue en verde, no prueba nada.
 
 ### 3. Avanzar por fases, siempre con algo que funciona
 Cada fase termina con un sistema ejecutable y una demo reproducible. No se introduce
@@ -77,3 +79,6 @@ el motivo en el registro de abajo. Las decisiones técnicas concretas van en ADR
 
 ### Registro
 - 2026-10-19 — Versión inicial.
+- 2026-10-21 — Principio 2: los tests de garantía se validan quitando el mecanismo y
+  viéndolos fallar. Motivo: en la spec 001 así se comprobó que `ConcurrentIngestionIT`
+  y `TransactionAtomicityIT` detectan de verdad el fallo que vigilan.

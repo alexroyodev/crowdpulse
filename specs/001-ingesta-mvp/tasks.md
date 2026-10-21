@@ -1,6 +1,6 @@
 # Tareas 001 — Ingesta de eventos y ocupación por zona (MVP)
 
-- **Estado:** Aprobado (2026-10-19)
+- **Estado:** Terminado (2026-10-21)
 - **Spec:** [`spec.md`](spec.md) · **Plan:** [`plan.md`](plan.md)
 
 Una tarea cada vez. Una tarea está terminada cuando su verificación pasa, los tests
@@ -177,6 +177,6 @@ la revisa antes de empezar la siguiente.
 | CA7 | `OccupancyTest` y `EventIngestionIT.exitOnEmptyZoneIsAcceptedKeptAtZeroAndMarkedAsAnomaly` | ✅ |
 | CA8 | `RestartIT` y manual (reinicio de la API con `curl` antes/después: idéntico) | ✅ |
 | CA9 | `ZoneQueryIT.unknownZoneIsNotFoundWithProblemDetail` | ✅ |
-| CA10 | Manual con el simulador (2026-10-21): 6 000 eventos a 100,1 ev/s, 306 duplicados, `202=6000`, las 4 zonas cuadran | ✅ (ver nota en `MEMORY.md`) |
-| CA11 | `git clone` de GitHub en un directorio limpio + `./mvnw verify` (2026-10-21): 78 tests en verde | ✅ |
+| CA10 | Manual con el simulador (2026-10-21, perfil 0,9→0,3): 6 000 eventos a 100,0 ev/s, 287 duplicados, `202=6000`; quedan 253/283/299/308 personas y las 4 zonas cuadran | ✅ |
+| CA11 | `git clone` de GitHub en un directorio limpio + `./mvnw verify` (2026-10-21): 78 tests en verde (80 tras los últimos ajustes, `./mvnw verify` local) | ✅ |
 | Regla 3 | `TransactionAtomicityIT` (mutación sin `@Transactional` → el evento queda guardado) | ✅ |

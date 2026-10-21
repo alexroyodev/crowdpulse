@@ -1,6 +1,6 @@
 # Spec 001 — Ingesta de eventos y ocupación por zona (MVP)
 
-- **Estado:** Aprobada
+- **Estado:** Terminada (2026-10-21)
 - **Fase:** 1
 - **Fecha:** 2026-10-19
 
