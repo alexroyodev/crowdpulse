@@ -148,7 +148,7 @@ la revisa antes de empezar la siguiente.
 
 ## Bloque E — Cierre
 
-- [ ] **T16 — ADRs** (plan §8)
+- [x] **T16 — ADRs** (plan §8)
   - `docs/adr/0001-jdbcclient-en-lugar-de-jpa.md` y
     `docs/adr/0002-bloqueo-pesimista-por-zona.md` (contexto, decisión, alternativas,
     consecuencias).

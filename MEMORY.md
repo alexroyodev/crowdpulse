@@ -2,8 +2,8 @@
 
 ## Estado actual
 - Fase: 1 (MVP síncrono, sin Kafka).
-- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T15 hechas (API y simulador).
-- Siguiente paso: T16 (ADRs 0001 y 0002).
+- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T16 hechas (API, simulador, ADRs).
+- Siguiente paso: T17 (README, CA11 desde clon limpio, cierre de la spec).
 - Código: monorepo Maven; `pom.xml` raíz es el padre; módulos `api/` y `simulator/`
   (Java plano, solo JUnit en test, JAR `simulator/target/simulator.jar`).
 
@@ -14,8 +14,8 @@
 - Sin Lombok: records y código explícito, más fácil de defender en entrevista.
 - `POST /events` responde 202 desde la fase 1: el contrato no cambia cuando el
   procesamiento pase a ser asíncrono con Kafka.
-- Plan 001 (aprobado 2026-10-19): JdbcClient en vez de JPA (el SQL crítico es
-  específico de PostgreSQL); bloqueo pesimista `FOR UPDATE` por zona; módulos `api/`
+- Plan 001 (aprobado 2026-10-19): JdbcClient en vez de JPA (ADR 0001); bloqueo
+  pesimista `FOR UPDATE` por zona (ADR 0002); módulos `api/`
   + `simulator/` (Java plano); `postgres:18` fijado; un `EXIT` anómalo sí actualiza
   `lastEventAt`.
 - `occupancy` usa `event.EventType` (única dependencia hacia `event`): la ocupación
