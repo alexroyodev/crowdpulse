@@ -154,10 +154,29 @@ la revisa antes de empezar la siguiente.
     consecuencias).
   - **Verificación:** revisión del autor.
 
-- [ ] **T17 — Verificación final y documentación**
+- [x] **T17 — Verificación final y documentación**
   - `README.md`: qué es, cómo levantarlo, cómo ejecutar el simulador.
   - CA11: `git clone` en un directorio limpio y `./mvnw verify` con Docker en marcha.
   - Actualizar `MEMORY.md` (spec 001 terminada) y proponer qué reglas pasan a
     `CLAUDE.md` o a la constitución.
   - **Verificación:** CA11 en verde; todos los CA de la spec tienen test o
     verificación manual registrada.
+
+---
+
+## Verificación de los criterios de aceptación
+
+| CA | Cómo se verifica | Resultado |
+|----|------------------|-----------|
+| CA1 | `EventIngestionIT.entriesAndExitsUpdateOccupancy` | ✅ |
+| CA2 | `EventIngestionIT.duplicateEventIsAcceptedButCountedOnce`; concurrente en `ConcurrentIngestionIT` | ✅ |
+| CA3 | `EventIngestionIT` (campo ausente, `type` inválido, UUID y fecha mal formados, JSON roto, `sensorId` > 50) | ✅ |
+| CA4 | `EventIngestionIT.unknownZoneIsUnprocessableAndNothingIsStored` | ✅ |
+| CA5 | `NotTooFarInFutureValidatorTest` (Clock fijo) y por HTTP en `EventIngestionIT` | ✅ |
+| CA6 | `ConcurrentIngestionIT` (3 ejecuciones seguidas; mutación sin `FOR UPDATE` → 169) | ✅ |
+| CA7 | `OccupancyTest` y `EventIngestionIT.exitOnEmptyZoneIsAcceptedKeptAtZeroAndMarkedAsAnomaly` | ✅ |
+| CA8 | `RestartIT` y manual (reinicio de la API con `curl` antes/después: idéntico) | ✅ |
+| CA9 | `ZoneQueryIT.unknownZoneIsNotFoundWithProblemDetail` | ✅ |
+| CA10 | Manual con el simulador (2026-10-21): 6 000 eventos a 100,1 ev/s, 306 duplicados, `202=6000`, las 4 zonas cuadran | ✅ (ver nota en `MEMORY.md`) |
+| CA11 | `git clone` de GitHub en un directorio limpio + `./mvnw verify` (2026-10-21): 78 tests en verde | ✅ |
+| Regla 3 | `TransactionAtomicityIT` (mutación sin `@Transactional` → el evento queda guardado) | ✅ |

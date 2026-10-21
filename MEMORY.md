@@ -2,47 +2,47 @@
 
 ## Estado actual
 - Fase: 1 (MVP síncrono, sin Kafka).
-- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T16 hechas (API, simulador, ADRs).
-- Siguiente paso: T17 (README, CA11 desde clon limpio, cierre de la spec).
-- Código: monorepo Maven; `pom.xml` raíz es el padre; módulos `api/` y `simulator/`
-  (Java plano, solo JUnit en test, JAR `simulator/target/simulator.jar`).
+- Spec 001 (`specs/001-ingesta-mvp/`): T01–T17 hechas, CA1–CA11 verificados (tabla al
+  final de `tasks.md`). Pendiente: visto bueno del autor para darla por cerrada.
+- Siguiente paso: decidir los problemas abiertos y redactar la spec 002.
+- Código: monorepo Maven; `pom.xml` raíz es el padre; módulos `api/` (Spring Boot 4.1)
+  y `simulator/` (Java plano, JAR `simulator/target/simulator.jar`). 78 tests.
 
 ## Decisiones (y su porqué)
-- Maven y Java 21 LTS: herramienta más habitual en ofertas backend Java; LTS estable.
-- Flyway desde el día 1 en lugar de `ddl-auto`: el esquema queda versionado y
-  revisable.
-- Sin Lombok: records y código explícito, más fácil de defender en entrevista.
-- `POST /events` responde 202 desde la fase 1: el contrato no cambia cuando el
-  procesamiento pase a ser asíncrono con Kafka.
-- Plan 001 (aprobado 2026-10-19): JdbcClient en vez de JPA (ADR 0001); bloqueo
-  pesimista `FOR UPDATE` por zona (ADR 0002); módulos `api/`
-  + `simulator/` (Java plano); `postgres:18` fijado; un `EXIT` anómalo sí actualiza
-  `lastEventAt`.
-- `occupancy` usa `event.EventType` (única dependencia hacia `event`): la ocupación
-  es función de los eventos. `Occupancy` es inmutable y valida `value >= 0`.
-- Configuración propia en records `@ConfigurationProperties` (p. ej. `EventProperties`)
-  en vez de `@Value`: tipada y validada al arrancar.
-- Zona inexistente: `ZoneNotFoundException` (GET, 404) y `UnknownZoneException`
+- Maven y Java 21 LTS; Flyway desde el día 1; sin Lombok: código explícito y
+  versionado, fácil de defender en entrevista.
+- `POST /events` responde 202 desde la fase 1: el contrato no cambia con Kafka.
+- JdbcClient en vez de JPA (ADR 0001); bloqueo pesimista `FOR UPDATE` por zona
+  (ADR 0002). Un `EXIT` anómalo sí actualiza `lastEventAt`.
+- `occupancy` usa `event.EventType`: la ocupación es función de los eventos.
+- Configuración propia en records `@ConfigurationProperties`, no `@Value`.
+- Zona inexistente: `ZoneNotFoundException` (GET, 404) / `UnknownZoneException`
   (POST, 422): misma causa, distinto significado HTTP.
+- Textos de la API siempre en español: `messages.properties` (`problemDetail.*`) y
+  locale fijo `es`, también para Bean Validation.
+- Logs con `eventId`: duplicado → INFO; zona desconocida, EXIT en 0, 400 → WARN.
+- Toda garantía con test y prueba de mutación: sin `FOR UPDATE` → 169 de 1 000;
+  sin `@Transactional` → el evento queda guardado. Duplicados concurrentes: los
+  protege la PK (`ON CONFLICT`), no el bloqueo.
 - ITs comparten contexto y contenedor: los que cambian datos usan `@Sql`
   `reset-state.sql` antes y después de cada test.
-- Errores de Spring MVC traducidos en `messages.properties` (`problemDetail.*`); siempre
-  en español: locale fijo `es` (`spring.web.locale-resolver: fixed`), también para los
-  mensajes de Bean Validation.
-- Duplicado → log INFO; zona desconocida y EXIT en 0 → log WARN; siempre con `eventId`.
-- CA6 verificado con mutación: sin `FOR UPDATE`, 1 000 ENTRY concurrentes → 169.
-  Los duplicados concurrentes los protege la PK (`ON CONFLICT`), no el bloqueo.
-- Migraciones aplicadas: V1 (esquema), V2 (4 zonas). No editarlas: cualquier cambio
-  va en V3+.
+- Simulador: un hilo por zona con envío síncrono (orden por zona) y comprobación
+  automática de CA10 (cambio de ocupación en la API = esperado).
+- Migraciones aplicadas: V1 (esquema), V2 (4 zonas). No editarlas: cambios en V3+.
 
 ## Problemas abiertos
-- Demo CA10 OK (6 000 eventos, 202=6000), pero con P(ENTRY) 0,9→0,1 el estadio acaba
-  casi vacío y la comprobación final es débil. Propuesto 0,9→0,3: pendiente del autor.
+- Demo CA10 OK, pero con P(ENTRY) 0,9→0,1 el estadio acaba casi vacío y la
+  comprobación final es débil (una API que ignorase eventos cuadraría en zonas que
+  acaban en 0). Propuesto 0,9→0,3: pendiente del autor.
+- Duplicados en log INFO: con mucho tráfico generan ruido; ¿bajar a DEBUG?
+- `lastEventAt` omite los milisegundos cuando son `.000` (ISO-8601 válido, pero
+  distinto del ejemplo de la spec). ¿Fijar el formato?
 
 ## Errores a evitar
-- En Windows, parar `./mvnw spring-boot:run` deja vivo el `java.exe` hijo en el 8080:
-  localizar el PID con `netstat -ano | grep :8080` y pararlo.
-- Consola de Windows: el simulador escribe en la codificación nativa; en Git Bash
-  usar `-Dstdout.encoding=UTF-8` para ver bien los acentos.
-- El `java` del PATH es 17; `./mvnw` usa `JAVA_HOME` (JDK 21). No ejecutar `java`
-  directamente sin comprobar la versión.
+- Windows: parar `./mvnw spring-boot:run` deja vivo el `java.exe` hijo en el 8080
+  (buscar el PID con `netstat -ano | grep :8080`).
+- Windows: el `java` del PATH es 17; usar el de `JAVA_HOME` (21). En Git Bash, añadir
+  `-Dstdout.encoding=UTF-8` al simulador para ver los acentos.
+- Docker Desktop no arranca solo tras reiniciar: sin él fallan todos los `*IT`.
+- Al hacer pruebas de mutación con `-Dit.test`, usar `-pl api`: en la raíz falla por
+  «no tests matching» y parece que el test ha fallado.
