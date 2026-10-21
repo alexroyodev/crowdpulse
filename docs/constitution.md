@@ -31,7 +31,7 @@ más que uno grande a medias.
 | Fase | Objetivo | Se añade |
 |------|----------|----------|
 | 1 | MVP síncrono: simulador → API → PostgreSQL, con alertas por umbrales | Spring Boot, Flyway, Docker Compose |
-| 2 | Procesamiento asíncrono | Kafka, servicio `processor` |
+| 2 | Procesamiento asíncrono | Kafka, servicio `processor`, DLT básico |
 | 3 | Fiabilidad | Idempotencia en el consumidor, DLT, escenarios de caída |
 | 4 | Observabilidad y presentación | Métricas, trazas, dashboard, documentación |
 
@@ -84,3 +84,5 @@ el motivo en el registro de abajo. Las decisiones técnicas concretas van en ADR
   y `TransactionAtomicityIT` detectan de verdad el fallo que vigilan.
 - 2026-10-21 — Fase 1 incluye las alertas por umbrales (spec 002). Motivo: no añaden
   tecnología nueva; la tabla de fases no las situaba en ninguna.
+- 2026-10-21 — Fase 2 incluye un DLT básico (spec 003). Motivo: `CLAUDE.md` exige que
+  ningún mensaje se descarte; los escenarios de caída siguen en la fase 3.

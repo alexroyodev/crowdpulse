@@ -4,8 +4,10 @@
 - Fase: 1 (MVP síncrono, sin Kafka). Objetivo de la fase cumplido.
 - Specs 001 (ingesta) y 002 (alertas): **terminadas** (2026-10-21); la verificación de
   cada CA está al final de su `tasks.md`.
-- Siguiente paso: el autor decide la spec 003 (la fase 2 de la constitución: Kafka y
-  el servicio `processor`).
+- Spec activa: `specs/003-procesamiento-asincrono/` (fase 2) — borrador con D1–D4
+  resueltas; pendiente de aprobar la spec, después `plan.md`. El plan pedirá permiso para:
+  módulo `processor`, spring-kafka + Testcontainers Kafka, Kafka en `compose.yaml`,
+  columna `processed_at`.
 - Código: monorepo Maven; `pom.xml` raíz es el padre; módulos `api/` (Spring Boot 4.1)
   y `simulator/` (Java plano). 121 tests (`./mvnw verify`).
 
