@@ -2,10 +2,10 @@
 
 ## Estado actual
 - Fase: 1 (MVP síncrono, sin Kafka).
-- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T12 hechas (API completa).
-- Siguiente paso: T13 (módulo `simulator` + `SimulatorConfig`).
-- Código: monorepo Maven; `pom.xml` raíz es el padre (`packaging=pom`) y módulo
-  `api/` con el proyecto de Initializr. `simulator/` se añade en T13.
+- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T13 hechas (API completa).
+- Siguiente paso: T14 (`TrafficGenerator`).
+- Código: monorepo Maven; `pom.xml` raíz es el padre; módulos `api/` y `simulator/`
+  (Java plano, solo JUnit en test, JAR `simulator/target/simulator.jar`).
 
 ## Decisiones (y su porqué)
 - Maven y Java 21 LTS: herramienta más habitual en ofertas backend Java; LTS estable.
@@ -40,5 +40,7 @@
 ## Errores a evitar
 - En Windows, parar `./mvnw spring-boot:run` deja vivo el `java.exe` hijo en el 8080:
   localizar el PID con `netstat -ano | grep :8080` y pararlo.
+- Consola de Windows: el simulador escribe en la codificación nativa; en Git Bash
+  usar `-Dstdout.encoding=UTF-8` para ver bien los acentos.
 - El `java` del PATH es 17; `./mvnw` usa `JAVA_HOME` (JDK 21). No ejecutar `java`
   directamente sin comprobar la versión.

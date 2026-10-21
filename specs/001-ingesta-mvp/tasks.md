@@ -121,7 +121,7 @@ la revisa antes de empezar la siguiente.
 
 ## Bloque D — Simulador
 
-- [ ] **T13 — Módulo `simulator` y configuración** (plan §4)
+- [x] **T13 — Módulo `simulator` y configuración** (plan §4)
   - Añadir `simulator` a `<modules>`; `simulator/pom.xml` sin dependencias (salvo
     JUnit para tests) y `maven-jar-plugin` con `Main-Class`.
   - `SimulatorConfig` (record) que parsea `--url`, `--rate`, `--duration`, `--zones`,
