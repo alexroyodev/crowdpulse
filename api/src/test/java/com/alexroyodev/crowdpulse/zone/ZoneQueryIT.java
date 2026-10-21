@@ -71,6 +71,21 @@ class ZoneQueryIT {
 	}
 
 	@Test
+	void lastEventAtAlwaysHasMilliseconds() {
+		// Whole seconds keep ".000"; microseconds (PostgreSQL precision) are cut to milliseconds.
+		jdbc.sql("UPDATE zone_occupancy SET last_event_at = '2026-10-19T18:30:05Z' WHERE zone_id = 'ESTE'").update();
+		jdbc.sql("UPDATE zone_occupancy SET last_event_at = '2026-10-19T18:30:05.988466Z' WHERE zone_id = 'OESTE'")
+				.update();
+
+		client.get().uri("/api/v1/zones")
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody()
+				.jsonPath("$[0].lastEventAt").isEqualTo("2026-10-19T18:30:05.000Z")
+				.jsonPath("$[2].lastEventAt").isEqualTo("2026-10-19T18:30:05.988Z");
+	}
+
+	@Test
 	void emptyZoneHasZeroPercentWithOneDecimal() {
 		String body = client.get().uri("/api/v1/zones/SUR")
 				.exchange()

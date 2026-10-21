@@ -70,7 +70,7 @@ class EventIngestionIT {
 				.expectStatus().isOk()
 				.expectBody()
 				.jsonPath("$.occupancy").isEqualTo(2)
-				.jsonPath("$.lastEventAt").isEqualTo(NOW.minusSeconds(10).toString());
+				.jsonPath("$.lastEventAt").isEqualTo("2026-10-19T18:29:50.000Z");
 	}
 
 	@Test

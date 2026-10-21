@@ -4,11 +4,14 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 /**
  * Response body of the zone endpoints (spec 001).
  *
  * @param occupancyPct occupancy as a percentage of capacity, one decimal; may exceed 100
- * @param lastEventAt most recent {@code occurredAt} applied to the zone, or null if none
+ * @param lastEventAt most recent {@code occurredAt} applied to the zone, or null if none; always
+ *        written in UTC with milliseconds, as in the spec example (2026-10-19T18:30:05.123Z)
  */
 public record ZoneView(
 		String zoneId,
@@ -16,7 +19,7 @@ public record ZoneView(
 		int capacity,
 		int occupancy,
 		BigDecimal occupancyPct,
-		Instant lastEventAt) {
+		@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "UTC") Instant lastEventAt) {
 
 	private static final BigDecimal ONE_HUNDRED = BigDecimal.valueOf(100);
 

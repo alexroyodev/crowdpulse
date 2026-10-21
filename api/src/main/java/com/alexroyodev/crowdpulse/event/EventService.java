@@ -53,7 +53,8 @@ class EventService {
 		SensorEvent event = new SensorEvent(request.eventId(), request.sensorId(), request.zoneId(),
 				request.type(), request.occurredAt(), receivedAt, change.anomaly());
 		if (!events.insertIfAbsent(event)) {
-			log.atInfo().setMessage("Duplicate event ignored")
+			// DEBUG, not INFO: duplicates are expected with at-least-once producers and would flood the log.
+			log.atDebug().setMessage("Duplicate event ignored")
 					.addKeyValue("eventId", request.eventId())
 					.log();
 			return;
