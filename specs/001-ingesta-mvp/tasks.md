@@ -96,7 +96,7 @@ la revisa antes de empezar la siguiente.
   - **Verificación:** `./mvnw verify`; `curl` de un ENTRY, el mismo repetido y una
     zona inexistente; el WARN de anomalía aparece en el log en JSON con `eventId`.
 
-- [ ] **T10 — Errores de validación (400)** (plan §3.6, §3.7)
+- [x] **T10 — Errores de validación (400)** (plan §3.6, §3.7)
   - `ApiExceptionHandler`: `MethodArgumentNotValidException` y
     `HttpMessageNotReadableException` → 400 con `errors: [{field, message}]`,
     textos en español; log con `eventId` si se pudo leer.

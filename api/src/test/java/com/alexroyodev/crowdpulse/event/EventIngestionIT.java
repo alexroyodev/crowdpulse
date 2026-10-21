@@ -8,6 +8,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -130,6 +131,134 @@ class EventIngestionIT {
 	}
 
 	record StoredTimes(Instant occurredAt, Instant receivedAt) {
+	}
+
+	// --- CA3: invalid requests -> 400 ProblemDetail naming the field; nothing changes ---
+
+	@Test
+	void missingFieldIsRejectedNamingIt() {
+		post("""
+				{"eventId":"%s","zoneId":"NORTE","type":"ENTRY","occurredAt":"%s"}
+				""".formatted(UUID.randomUUID(), NOW))
+				.expectStatus().isBadRequest()
+				.expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
+				.expectBody()
+				.jsonPath("$.title").isEqualTo("Datos no válidos")
+				.jsonPath("$.errors[0].field").isEqualTo("sensorId")
+				.jsonPath("$.errors[0].message").isEqualTo("no debe estar vacío");
+
+		assertNothingChanged();
+	}
+
+	@Test
+	void unknownTypeIsRejectedListingTheAllowedValues() {
+		post(event(UUID.randomUUID(), "NORTE", "JUMP", NOW))
+				.expectStatus().isBadRequest()
+				.expectBody()
+				.jsonPath("$.title").isEqualTo("Petición mal formada")
+				.jsonPath("$.errors[0].field").isEqualTo("type")
+				.jsonPath("$.errors[0].message").isEqualTo("valor no válido; valores permitidos: [ENTRY, EXIT]");
+
+		assertNothingChanged();
+	}
+
+	@Test
+	void malformedEventIdIsRejectedNamingIt() {
+		post("""
+				{"eventId":"not-a-uuid","sensorId":"NORTE-P01","zoneId":"NORTE","type":"ENTRY","occurredAt":"%s"}
+				""".formatted(NOW))
+				.expectStatus().isBadRequest()
+				.expectBody()
+				.jsonPath("$.errors[0].field").isEqualTo("eventId")
+				.jsonPath("$.errors[0].message").isEqualTo("formato no válido");
+
+		assertNothingChanged();
+	}
+
+	@Test
+	void malformedOccurredAtIsRejectedNamingIt() {
+		post("""
+				{"eventId":"%s","sensorId":"NORTE-P01","zoneId":"NORTE","type":"ENTRY","occurredAt":"ayer"}
+				""".formatted(UUID.randomUUID()))
+				.expectStatus().isBadRequest()
+				.expectBody()
+				.jsonPath("$.errors[0].field").isEqualTo("occurredAt");
+
+		assertNothingChanged();
+	}
+
+	@Test
+	void brokenJsonIsRejectedWithoutLeakingParserDetails() {
+		post("{\"eventId\": ")
+				.expectStatus().isBadRequest()
+				.expectBody()
+				.jsonPath("$.title").isEqualTo("Petición mal formada")
+				.jsonPath("$.detail").isEqualTo("El cuerpo de la petición no se puede leer.")
+				.jsonPath("$.errors").doesNotExist()
+				.jsonPath("$.trace").doesNotExist();
+
+		assertNothingChanged();
+	}
+
+	@Test
+	void tooLongSensorIdIsRejected() {
+		String body = """
+				{"eventId":"%s","sensorId":"%s","zoneId":"NORTE","type":"ENTRY","occurredAt":"%s"}
+				""".formatted(UUID.randomUUID(), "S".repeat(51), NOW);
+
+		post(body)
+				.expectStatus().isBadRequest()
+				.expectBody()
+				.jsonPath("$.errors[0].field").isEqualTo("sensorId");
+
+		assertNothingChanged();
+	}
+
+	@Test
+	void everyInvalidFieldIsReported() {
+		post("""
+				{"eventId":"%s","type":"ENTRY"}
+				""".formatted(UUID.randomUUID()))
+				.expectStatus().isBadRequest()
+				.expectBody()
+				.jsonPath("$.errors[*].field").isEqualTo(List.of("occurredAt", "sensorId", "zoneId"));
+	}
+
+	// --- CA5 over HTTP: also proves Spring builds the validator with the (fixed) Clock ---
+
+	@Test
+	void occurredAtJustBeyondFiveMinutesAheadIsRejected() {
+		post(event(UUID.randomUUID(), "NORTE", "ENTRY", NOW.plusSeconds(300).plusMillis(1)))
+				.expectStatus().isBadRequest()
+				.expectBody()
+				.jsonPath("$.errors[0].field").isEqualTo("occurredAt")
+				.jsonPath("$.errors[0].message").isEqualTo("está demasiado lejos en el futuro respecto al reloj del servidor");
+
+		assertNothingChanged();
+	}
+
+	@Test
+	void occurredAtFourMinutesAheadIsAccepted() {
+		post(event(UUID.randomUUID(), "NORTE", "ENTRY", NOW.plusSeconds(240))).expectStatus().isAccepted();
+
+		assertThat(occupancyOf("NORTE")).isEqualTo(1);
+	}
+
+	@Test
+	void unknownJsonFieldsAreIgnored() {
+		// A producer that sends a newer field must not break (constitution, principle 5).
+		post("""
+				{"eventId":"%s","sensorId":"NORTE-P01","zoneId":"NORTE","type":"ENTRY",\
+				"occurredAt":"%s","battery":87}
+				""".formatted(UUID.randomUUID(), NOW))
+				.expectStatus().isAccepted();
+
+		assertThat(occupancyOf("NORTE")).isEqualTo(1);
+	}
+
+	private void assertNothingChanged() {
+		assertThat(storedEvents()).isZero();
+		assertThat(occupancyOf("NORTE")).isZero();
 	}
 
 	private ResponseSpec post(String body) {

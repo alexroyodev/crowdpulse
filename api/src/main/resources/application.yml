@@ -5,6 +5,12 @@ spring:
     compose:
       # compose.yaml lives at the repository root; spring-boot:run uses api/ as working directory.
       file: ../compose.yaml
+  # API texts are Spanish for every client: ignore Accept-Language and the OS locale.
+  web:
+    locale: es
+    locale-resolver: fixed
+  messages:
+    fallback-to-system-locale: false
 
 server:
   error:

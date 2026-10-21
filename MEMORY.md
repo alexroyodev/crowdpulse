@@ -2,8 +2,8 @@
 
 ## Estado actual
 - Fase: 1 (MVP síncrono, sin Kafka).
-- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T09 hechas.
-- Siguiente paso: T10 (errores 400 de validación con `errors[{field,message}]`, CA3, CA5).
+- Spec activa: `specs/001-ingesta-mvp/` — spec, plan y tareas aprobados. T01–T10 hechas.
+- Siguiente paso: T11 (`ConcurrentIngestionIT`, CA6).
 - Código: monorepo Maven; `pom.xml` raíz es el padre (`packaging=pom`) y módulo
   `api/` con el proyecto de Initializr. `simulator/` se añade en T13.
 
@@ -27,14 +27,13 @@
 - ITs comparten contexto y contenedor: los que cambian datos usan `@Sql`
   `reset-state.sql` antes y después de cada test.
 - Errores de Spring MVC traducidos en `messages.properties` (`problemDetail.*`); siempre
-  en español, sin depender de `Accept-Language` (`ApiErrorsIT`).
+  en español: locale fijo `es` (`spring.web.locale-resolver: fixed`), también para los
+  mensajes de Bean Validation.
 - Duplicado → log INFO; zona desconocida y EXIT en 0 → log WARN; siempre con `eventId`.
 - Migraciones aplicadas: V1 (esquema), V2 (4 zonas). No editarlas: cualquier cambio
   va en V3+.
 
 ## Problemas abiertos
-- T10: comprobar por HTTP que Spring crea `NotTooFarInFutureValidator` inyectando
-  `Clock` y `EventProperties` (hoy solo está probado con un test unitario).
 
 ## Errores a evitar
 - En Windows, parar `./mvnw spring-boot:run` deja vivo el `java.exe` hijo en el 8080:
