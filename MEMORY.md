@@ -4,8 +4,8 @@
 - Fase: 1 (MVP síncrono, sin Kafka). Objetivo de la fase cumplido.
 - Spec 001 (`specs/001-ingesta-mvp/`): **terminada** (2026-10-21). CA1–CA11
   verificados; tabla al final de `tasks.md`.
-- Siguiente paso: el autor decide la spec 002. Candidatas: alertas y umbrales (la spec
-  001 la deja para una spec propia, sin fase asignada) o la fase 2 (Kafka, `processor`).
+- Spec activa: `specs/002-alertas-umbrales/` — borrador con D1–D4 resueltas por el
+  autor; pendiente de aprobar la spec. Siguiente paso: aprobarla y generar `plan.md`.
 - Código: monorepo Maven; `pom.xml` raíz es el padre; módulos `api/` (Spring Boot 4.1)
   y `simulator/` (Java plano). 80 tests (`./mvnw verify`).
 
@@ -32,7 +32,8 @@
 - Migraciones aplicadas: V1 (esquema), V2 (4 zonas). No editarlas: cambios en V3+.
 
 ## Problemas abiertos
-- (ninguno)
+- Spec 002 añade la zona `PALCO`: `MigrationIT` y `ZoneQueryIT` comprueban
+  exactamente 4 zonas y habrá que actualizarlos (cambio de catálogo aprobado, D3).
 
 ## Errores a evitar
 - Notas de Windows (java 17 en el PATH, `java.exe` vivo en el 8080, acentos en Git

@@ -30,7 +30,7 @@ más que uno grande a medias.
 
 | Fase | Objetivo | Se añade |
 |------|----------|----------|
-| 1 | MVP síncrono: simulador → API → PostgreSQL | Spring Boot, Flyway, Docker Compose |
+| 1 | MVP síncrono: simulador → API → PostgreSQL, con alertas por umbrales | Spring Boot, Flyway, Docker Compose |
 | 2 | Procesamiento asíncrono | Kafka, servicio `processor` |
 | 3 | Fiabilidad | Idempotencia en el consumidor, DLT, escenarios de caída |
 | 4 | Observabilidad y presentación | Métricas, trazas, dashboard, documentación |
@@ -82,3 +82,5 @@ el motivo en el registro de abajo. Las decisiones técnicas concretas van en ADR
 - 2026-10-21 — Principio 2: los tests de garantía se validan quitando el mecanismo y
   viéndolos fallar. Motivo: en la spec 001 así se comprobó que `ConcurrentIngestionIT`
   y `TransactionAtomicityIT` detectan de verdad el fallo que vigilan.
+- 2026-10-21 — Fase 1 incluye las alertas por umbrales (spec 002). Motivo: no añaden
+  tecnología nueva; la tabla de fases no las situaba en ninguna.
