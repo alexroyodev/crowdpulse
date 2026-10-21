@@ -31,3 +31,11 @@ crowdpulse:
   events:
     # Maximum allowed distance of occurredAt into the future (spec 001).
     max-future-skew: 5m
+  # Spec 002 (D1): enter a level at enter-pct, leave it only below exit-pct (hysteresis).
+  alerts:
+    warning:
+      enter-pct: 85
+      exit-pct: 80
+    critical:
+      enter-pct: 95
+      exit-pct: 90

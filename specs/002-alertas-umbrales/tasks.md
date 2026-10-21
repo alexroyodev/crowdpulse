@@ -25,7 +25,7 @@ verde y `MEMORY.md` está actualizado. Al terminar se marca `[x]`.
 
 ## Bloque B — Dominio (sin Spring)
 
-- [ ] **T02 — `AlertLevel` y `AlertProperties`** (plan §3)
+- [x] **T02 — `AlertLevel` y `AlertProperties`** (plan §3)
   - `alert.AlertLevel`; `alert.AlertProperties` (`crowdpulse.alerts.warning|critical`
     con `enterPct` y `exitPct`), validada en el constructor.
   - `application.yml` con los valores de D1 (85/80 y 95/90).
