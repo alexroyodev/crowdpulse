@@ -46,7 +46,21 @@ class ZoneQueryIT {
 				.jsonPath("$[1].name").isEqualTo("Fondo Norte")
 				.jsonPath("$[1].capacity").isEqualTo(20000)
 				.jsonPath("$[1].occupancy").isEqualTo(0)
-				.jsonPath("$[1].lastEventAt").isEmpty();
+				.jsonPath("$[1].lastEventAt").isEmpty()
+				.jsonPath("$[*].alertLevel").isEqualTo(List.of("NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL"));
+	}
+
+	@Test
+	void showsTheCurrentAlertLevel() {
+		// Spec 002 (D2): the level stored for the zone, as is.
+		jdbc.sql("UPDATE zone_occupancy SET occupancy = 17000, alert_level = 'WARNING' WHERE zone_id = 'NORTE'").update();
+
+		client.get().uri("/api/v1/zones/NORTE")
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody()
+				.jsonPath("$.occupancyPct").isEqualTo(85.0)
+				.jsonPath("$.alertLevel").isEqualTo("WARNING");
 	}
 
 	@Test
@@ -67,7 +81,7 @@ class ZoneQueryIT {
 		// Exact JSON text: occupancyPct a number with one decimal, lastEventAt an ISO-8601 string.
 		assertThat(body).isEqualTo("""
 				{"zoneId":"NORTE","name":"Fondo Norte","capacity":20000,"occupancy":12345,\
-				"occupancyPct":61.7,"lastEventAt":"2026-10-19T18:30:05.123Z"}""");
+				"occupancyPct":61.7,"lastEventAt":"2026-10-19T18:30:05.123Z","alertLevel":"NORMAL"}""");
 	}
 
 	@Test

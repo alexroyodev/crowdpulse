@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 
+import com.alexroyodev.crowdpulse.alert.AlertLevel;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
@@ -12,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * @param occupancyPct occupancy as a percentage of capacity, one decimal; may exceed 100
  * @param lastEventAt most recent {@code occurredAt} applied to the zone, or null if none; always
  *        written in UTC with milliseconds, as in the spec example (2026-10-19T18:30:05.123Z)
+ * @param alertLevel current alert level of the zone (spec 002)
  */
 public record ZoneView(
 		String zoneId,
@@ -19,12 +21,14 @@ public record ZoneView(
 		int capacity,
 		int occupancy,
 		BigDecimal occupancyPct,
-		@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "UTC") Instant lastEventAt) {
+		@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "UTC") Instant lastEventAt,
+		AlertLevel alertLevel) {
 
 	private static final BigDecimal ONE_HUNDRED = BigDecimal.valueOf(100);
 
-	public static ZoneView of(String zoneId, String name, int capacity, int occupancy, Instant lastEventAt) {
-		return new ZoneView(zoneId, name, capacity, occupancy, percentage(occupancy, capacity), lastEventAt);
+	public static ZoneView of(String zoneId, String name, int capacity, int occupancy, Instant lastEventAt,
+			AlertLevel alertLevel) {
+		return new ZoneView(zoneId, name, capacity, occupancy, percentage(occupancy, capacity), lastEventAt, alertLevel);
 	}
 
 	/**

@@ -54,7 +54,7 @@ verde y `MEMORY.md` está actualizado. Al terminar se marca `[x]`.
   - **Verificación:** `./mvnw verify`; manual: con `psql` se lleva `PALCO` a 169 personas,
     un `ENTRY` por `curl` y aparece una fila en `alert` y el `WARN` en el log.
 
-- [ ] **T05 — `alertLevel` en las zonas** (plan §4, D2)
+- [x] **T05 — `alertLevel` en las zonas** (plan §4, D2)
   - `ZoneView` + `ZoneQueryRepository`; `ZoneView.percentage` pasa a público.
   - `ZoneQueryIT`: JSON exacto con `alertLevel`; una zona en `WARNING` lo muestra.
   - **Verificación:** `./mvnw verify`; `curl localhost:8080/api/v1/zones`.

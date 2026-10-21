@@ -10,12 +10,14 @@ import java.util.Optional;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
+import com.alexroyodev.crowdpulse.alert.AlertLevel;
+
 /** Read side of the zone endpoints: catalogue joined with current occupancy. No cache (CA8). */
 @Repository
 class ZoneQueryRepository {
 
 	private static final String SELECT_ZONES = """
-			SELECT z.zone_id, z.name, z.capacity, o.occupancy, o.last_event_at
+			SELECT z.zone_id, z.name, z.capacity, o.occupancy, o.last_event_at, o.alert_level
 			FROM zone z
 			JOIN zone_occupancy o ON o.zone_id = z.zone_id
 			""";
@@ -47,7 +49,8 @@ class ZoneQueryRepository {
 				rs.getString("name"),
 				rs.getInt("capacity"),
 				rs.getInt("occupancy"),
-				lastEventAt == null ? null : lastEventAt.toInstant());
+				lastEventAt == null ? null : lastEventAt.toInstant(),
+				AlertLevel.valueOf(rs.getString("alert_level")));
 	}
 
 }

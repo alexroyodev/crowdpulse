@@ -8,6 +8,8 @@ import java.time.Instant;
 
 import org.junit.jupiter.api.Test;
 
+import com.alexroyodev.crowdpulse.alert.AlertLevel;
+
 class ZoneViewTest {
 
 	@Test
@@ -48,10 +50,10 @@ class ZoneViewTest {
 	void ofComputesThePercentage() {
 		Instant lastEventAt = Instant.parse("2026-10-19T18:30:05.123Z");
 
-		ZoneView view = ZoneView.of("NORTE", "Fondo Norte", 20_000, 12_345, lastEventAt);
+		ZoneView view = ZoneView.of("NORTE", "Fondo Norte", 20_000, 12_345, lastEventAt, AlertLevel.NORMAL);
 
-		assertThat(view).isEqualTo(
-				new ZoneView("NORTE", "Fondo Norte", 20_000, 12_345, new BigDecimal("61.7"), lastEventAt));
+		assertThat(view).isEqualTo(new ZoneView("NORTE", "Fondo Norte", 20_000, 12_345, new BigDecimal("61.7"),
+				lastEventAt, AlertLevel.NORMAL));
 	}
 
 }
