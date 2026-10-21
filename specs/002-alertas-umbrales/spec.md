@@ -1,6 +1,6 @@
 # Spec 002 — Alertas de ocupación por umbrales
 
-- **Estado:** Borrador: decisiones D1–D4 resueltas (2026-10-21), pendiente de aprobación
+- **Estado:** Aprobada (2026-10-21)
 - **Fase:** 1 (D4)
 - **Fecha:** 2026-10-21
 - **Depende de:** [spec 001](../001-ingesta-mvp/spec.md)

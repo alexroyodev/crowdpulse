@@ -4,8 +4,8 @@
 - Fase: 1 (MVP síncrono, sin Kafka). Objetivo de la fase cumplido.
 - Spec 001 (`specs/001-ingesta-mvp/`): **terminada** (2026-10-21). CA1–CA11
   verificados; tabla al final de `tasks.md`.
-- Spec activa: `specs/002-alertas-umbrales/` — borrador con D1–D4 resueltas por el
-  autor; pendiente de aprobar la spec. Siguiente paso: aprobarla y generar `plan.md`.
+- Spec activa: `specs/002-alertas-umbrales/` — spec aprobada (2026-10-21); `plan.md`
+  en borrador. Siguiente paso: aprobar el plan (⚠️ migraciones V3 y V4) y generar `tasks.md`.
 - Código: monorepo Maven; `pom.xml` raíz es el padre; módulos `api/` (Spring Boot 4.1)
   y `simulator/` (Java plano). 80 tests (`./mvnw verify`).
 
