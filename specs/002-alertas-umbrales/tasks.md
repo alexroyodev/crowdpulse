@@ -33,7 +33,7 @@ verde y `MEMORY.md` está actualizado. Al terminar se marca `[x]`.
     `WARNING` ≥ `CRITICAL` → error.
   - **Verificación:** `./mvnw verify` (el contexto arranca con la configuración nueva).
 
-- [ ] **T03 — `AlertPolicy`** (plan §3, reglas 2–5)
+- [x] **T03 — `AlertPolicy`** (plan §3, reglas 2–5)
   - `alert.AlertPolicy.next(current, occupancy, capacity)` con comparación entera.
   - `AlertPolicyTest`: la tabla de ejemplo de la spec, fila a fila (test parametrizado);
     16 999 / 20 000 no llega; 20 500 sigue `CRITICAL`; de `CRITICAL` a `NORMAL` de golpe;
