@@ -75,7 +75,7 @@ verde y `MEMORY.md` está actualizado. Al terminar se marca `[x]`.
     falla `ConcurrentAlertIT`; restaurar ambas.
   - **Verificación:** `./mvnw verify`, 3 veces seguidas en verde.
 
-- [ ] **T08 — Persistencia tras reinicio** (CA10)
+- [x] **T08 — Persistencia tras reinicio** (CA10)
   - `RestartIT`: además de la ocupación, `alertLevel` y `GET /api/v1/alerts` son iguales
     tras reiniciar (eventos a `PALCO` hasta pasar el 85 %).
   - **Verificación:** `./mvnw verify`.

@@ -58,6 +58,35 @@ class RestartIT {
 		assertThat(after).isEqualTo(before);
 	}
 
+	@Test
+	void alertLevelAndHistorySurviveARestart() {
+		// Spec 002, CA10: 171 ENTRY take PALCO (200 seats) past 85 %.
+		String zoneBefore;
+		String alertsBefore;
+		try (ConfigurableApplicationContext app = startApi()) {
+			RestClient api = clientFor(app);
+			Instant occurredAt = Clock.systemUTC().instant().minusSeconds(1);
+			for (int i = 0; i < 171; i++) {
+				post(api, "PALCO", "ENTRY", occurredAt);
+			}
+			zoneBefore = api.get().uri("/api/v1/zones/PALCO").retrieve().body(String.class);
+			alertsBefore = api.get().uri("/api/v1/alerts?zoneId=PALCO").retrieve().body(String.class);
+		}
+
+		String zoneAfter;
+		String alertsAfter;
+		try (ConfigurableApplicationContext app = startApi()) {
+			RestClient api = clientFor(app);
+			zoneAfter = api.get().uri("/api/v1/zones/PALCO").retrieve().body(String.class);
+			alertsAfter = api.get().uri("/api/v1/alerts?zoneId=PALCO").retrieve().body(String.class);
+		}
+
+		assertThat(zoneBefore).contains("\"occupancy\":171", "\"alertLevel\":\"WARNING\"");
+		assertThat(alertsBefore).contains("\"from\":\"NORMAL\"", "\"to\":\"WARNING\"", "\"occupancy\":170");
+		assertThat(zoneAfter).isEqualTo(zoneBefore);
+		assertThat(alertsAfter).isEqualTo(alertsBefore);
+	}
+
 	private static ConfigurableApplicationContext startApi() {
 		return new SpringApplicationBuilder(CrowdpulseApplication.class)
 				.properties(

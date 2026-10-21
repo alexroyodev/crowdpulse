@@ -5,7 +5,7 @@
 - Spec 001 (`specs/001-ingesta-mvp/`): **terminada** (2026-10-21). CA1–CA11
   verificados; tabla al final de `tasks.md`.
 - Spec activa: `specs/002-alertas-umbrales/` — spec y plan aprobados (2026-10-21,
-  incluidas V3 y V4) y tareas aprobadas. T01–T07 hechas. Siguiente paso: T08.
+  incluidas V3 y V4) y tareas aprobadas. T01–T08 hechas. Siguiente paso: T09 (cierre).
 - Código: monorepo Maven; `pom.xml` raíz es el padre; módulos `api/` (Spring Boot 4.1)
   y `simulator/` (Java plano). 80 tests (`./mvnw verify`).
 
