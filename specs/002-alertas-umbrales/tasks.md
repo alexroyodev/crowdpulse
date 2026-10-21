@@ -67,7 +67,7 @@ verde y `MEMORY.md` está actualizado. Al terminar se marca `[x]`.
     `limit=0`, `limit=501` y `limit=abc`).
   - **Verificación:** `./mvnw verify`; `curl` de cada caso.
 
-- [ ] **T07 — Atomicidad y concurrencia** (CA6, CA7)
+- [x] **T07 — Atomicidad y concurrencia** (CA6, CA7)
   - `AlertAtomicityIT`: falla `AlertRepository.insert` → ni evento ni ocupación guardados.
   - `ConcurrentAlertIT`: `NORTE` a 16 990, 20 hilos a la vez → 17 010 y un solo
     `NORMAL → WARNING`.

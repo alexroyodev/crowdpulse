@@ -10,11 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +22,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
+import com.alexroyodev.crowdpulse.Concurrently;
 import com.alexroyodev.crowdpulse.TestcontainersConfiguration;
 
 /**
@@ -62,7 +58,7 @@ class ConcurrentIngestionIT {
 			requests.add(() -> post(body));
 		}
 
-		List<Integer> statuses = runConcurrently(requests);
+		List<Integer> statuses = Concurrently.run(THREADS, requests);
 
 		assertThat(statuses).hasSize(1_000).containsOnly(202);
 		assertThat(occupancyOfNorte()).isEqualTo(1_000);
@@ -77,35 +73,11 @@ class ConcurrentIngestionIT {
 			requests.add(() -> post(body));
 		}
 
-		List<Integer> statuses = runConcurrently(requests);
+		List<Integer> statuses = Concurrently.run(THREADS, requests);
 
 		assertThat(statuses).hasSize(THREADS).containsOnly(202);
 		assertThat(occupancyOfNorte()).isEqualTo(1);
 		assertThat(storedEvents()).isEqualTo(1);
-	}
-
-	/** Runs the requests on THREADS threads that all start together; returns the HTTP statuses. */
-	private static List<Integer> runConcurrently(List<Callable<Integer>> requests) throws Exception {
-		ExecutorService pool = Executors.newFixedThreadPool(THREADS);
-		CountDownLatch startGate = new CountDownLatch(1);
-		try {
-			List<Future<Integer>> futures = new ArrayList<>();
-			for (Callable<Integer> request : requests) {
-				futures.add(pool.submit(() -> {
-					startGate.await();
-					return request.call();
-				}));
-			}
-			startGate.countDown();
-			List<Integer> statuses = new ArrayList<>();
-			for (Future<Integer> future : futures) {
-				statuses.add(future.get(60, TimeUnit.SECONDS));
-			}
-			return statuses;
-		}
-		finally {
-			pool.shutdownNow();
-		}
 	}
 
 	private int post(String body) {

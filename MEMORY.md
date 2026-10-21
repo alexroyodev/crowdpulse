@@ -5,7 +5,7 @@
 - Spec 001 (`specs/001-ingesta-mvp/`): **terminada** (2026-10-21). CA1–CA11
   verificados; tabla al final de `tasks.md`.
 - Spec activa: `specs/002-alertas-umbrales/` — spec y plan aprobados (2026-10-21,
-  incluidas V3 y V4) y tareas aprobadas. T01–T06 hechas. Siguiente paso: T07.
+  incluidas V3 y V4) y tareas aprobadas. T01–T07 hechas. Siguiente paso: T08.
 - Código: monorepo Maven; `pom.xml` raíz es el padre; módulos `api/` (Spring Boot 4.1)
   y `simulator/` (Java plano). 80 tests (`./mvnw verify`).
 
@@ -27,6 +27,9 @@
   guarda microsegundos.
 - Pruebas de mutación hechas: sin `FOR UPDATE` → 169 de 1 000; sin `@Transactional`
   → el evento queda guardado. Duplicados concurrentes: los protege la PK, no el bloqueo.
+  Spec 002: sin histéresis fallan 4 de `AlertPolicyTest`; sin `@Transactional` falla
+  `AlertAtomicityIT`; sin `FOR UPDATE`, 20 ENTRY concurrentes → 16 992 en vez de 17 010.
+- `Concurrently.run` (test): utilidad compartida para lanzar N hilos a la vez.
 - Simulador: un hilo por zona con envío síncrono (orden por zona); P(ENTRY) 0,9→0,3
   para que al final quede gente y CA10 compare números reales; comprueba CA10 solo.
 - Migraciones aplicadas: V1 (esquema), V2 (4 zonas), V3 (nivel de alerta + tabla
@@ -37,6 +40,7 @@
 
 ## Errores a evitar
 - Git Bash no tiene `/proc/sys/kernel/random/uuid` ni `uuidgen`: UUIDs con
-  `powershell.exe -NoProfile -Command '[guid]::NewGuid().ToString()' | tr -d ''`.
+  `powershell.exe -NoProfile -Command '[guid]::NewGuid().ToString()' | tr -d '
+'`.
 - Notas de Windows (java 17 en el PATH, `java.exe` vivo en el 8080, acentos en Git
   Bash, Docker Desktop parado): ver `CLAUDE.md` › Comandos.
