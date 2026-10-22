@@ -2,7 +2,10 @@
 
 ## Estado actual
 - Fase 2 cumplida (2026-10-22). Specs 001, 002 y 003 terminadas; verificación de los CA
-  al final de cada `tasks.md`. Sin spec activa: la siguiente sería la fase 3 (fiabilidad).
+  al final de cada `tasks.md`.
+- Spec activa: `specs/004-fiabilidad-ante-caidas/` (fase 3), borrador con D1–D4
+  pendientes del autor (espera ante BD caída, reproceso del DLT, API con BD caída,
+  enmienda de la fase 3 en la constitución).
 - Código: monorepo Maven; módulos `shared/` (migraciones, enums, `SensorEventMessage` v1,
   `Topics`), `api/` (valida, 422, publica; consultas), `processor/` (8081, `EventProcessor`:
   reglas de 001 y 002) y `simulator/`.
