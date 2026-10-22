@@ -24,6 +24,7 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import com.alexroyodev.crowdpulse.event.EventNotPublishedException;
 import com.alexroyodev.crowdpulse.event.EventRequest;
 import com.alexroyodev.crowdpulse.zone.UnknownZoneException;
 import com.alexroyodev.crowdpulse.zone.ZoneNotFoundException;
@@ -140,6 +141,25 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 		problem.setTitle("Zona desconocida");
 		problem.setProperty("zoneId", ex.zoneId());
 		return problem;
+	}
+
+	/**
+	 * 503: Kafka did not confirm the event (spec 003, D3). The sensor retries; a retried event that
+	 * did reach Kafka is a harmless duplicate.
+	 */
+	@ExceptionHandler(EventNotPublishedException.class)
+	ResponseEntity<ProblemDetail> handleEventNotPublished(EventNotPublishedException ex) {
+		log.atWarn().setMessage("Event not published: Kafka did not confirm it")
+				.addKeyValue("eventId", ex.eventId())
+				.addKeyValue("cause", ex.getCause() == null ? null : ex.getCause().toString())
+				.log();
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE,
+				"No se ha podido registrar el evento; reinténtalo.");
+		problem.setTitle("Servicio no disponible");
+		problem.setProperty("eventId", ex.eventId());
+		return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+				.header(HttpHeaders.RETRY_AFTER, "1")
+				.body(problem);
 	}
 
 	/** Last resort: the client gets a generic message; the details and stack trace go only to the log. */

@@ -13,17 +13,20 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/v1/events")
 class EventController {
 
-	private final EventService service;
+	private final EventPublisher publisher;
 
-	EventController(EventService service) {
-		this.service = service;
+	EventController(EventPublisher publisher) {
+		this.publisher = publisher;
 	}
 
-	/** 202 for new and duplicate events alike, so the contract holds once processing is asynchronous. */
+	/**
+	 * 202 once Kafka has the event: it will be processed, not that it already was (spec 003). New and
+	 * duplicate events alike; the processor ignores duplicates.
+	 */
 	@PostMapping
 	@ResponseStatus(HttpStatus.ACCEPTED)
 	void accept(@Valid @RequestBody EventRequest request) {
-		service.accept(request);
+		publisher.publish(request);
 	}
 
 }

@@ -11,7 +11,7 @@ import jakarta.validation.constraints.Size;
 
 /**
  * Body of POST /api/v1/events (event contract v1, spec 001). Validated at the edge: the
- * service only ever receives valid requests. Whether zoneId exists is checked by the service,
+ * publisher only ever receives valid requests. Whether zoneId exists is checked by the publisher,
  * because it needs the database.
  */
 public record EventRequest(

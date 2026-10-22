@@ -18,10 +18,10 @@ import jakarta.validation.constraints.Min;
 @RequestMapping("/api/v1/alerts")
 class AlertController {
 
-	private final AlertRepository alerts;
+	private final AlertQueryRepository alerts;
 	private final ZoneQueryRepository zones;
 
-	AlertController(AlertRepository alerts, ZoneQueryRepository zones) {
+	AlertController(AlertQueryRepository alerts, ZoneQueryRepository zones) {
 		this.alerts = alerts;
 		this.zones = zones;
 	}
@@ -34,12 +34,12 @@ class AlertController {
 	List<AlertView> list(@RequestParam(required = false) String zoneId,
 			@RequestParam(defaultValue = "50") @Min(1) @Max(500) int limit) {
 		if (zoneId == null) {
-			return alerts.findLatest(limit).stream().map(AlertView::of).toList();
+			return alerts.findLatest(limit);
 		}
 		if (!zones.exists(zoneId)) {
 			throw new ZoneNotFoundException(zoneId);
 		}
-		return alerts.findLatestOfZone(zoneId, limit).stream().map(AlertView::of).toList();
+		return alerts.findLatestOfZone(zoneId, limit);
 	}
 
 }

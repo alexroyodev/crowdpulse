@@ -40,7 +40,7 @@ tests, ninguna aserción se borra ni se relaja: cambia de sitio (plan §7).
   - `CrowdpulseApplicationIT` sigue arrancando con Kafka en el contexto.
   - **Verificación:** `docker compose up -d` levanta los dos servicios; `./mvnw verify`.
 
-- [ ] **T04 — Módulo `processor` con el código movido** (plan §2, §5.2, §7)
+- [x] **T04 — Módulo `processor` con el código movido** (plan §2, §5.2, §7)
   - `processor/pom.xml`, `ProcessorApplication`, `application.yml` (puerto 8081,
     `crowdpulse.alerts`, `start-only` de Docker Compose), `ClockConfig`.
   - `git mv` de `EventService` (→ `EventProcessor`, recibe `SensorEventMessage`, guarda
@@ -50,15 +50,20 @@ tests, ninguna aserción se borra ni se relaja: cambia de sitio (plan §7).
   - Tests movidos según la tabla del plan §7: `OccupancyTest`, `AlertPolicyTest`,
     `AlertPropertiesTest`, `EventProcessingIT`, `ConcurrentIngestionIT`,
     `TransactionAtomicityIT`, `AlertProcessingIT`, `AlertAtomicityIT`, `ConcurrentAlertIT`,
-    `CrowdpulseApplicationIT` (umbrales). Llaman a `EventProcessor` directamente.
+    `CrowdpulseApplicationIT` (umbrales → `ProcessorApplicationIT`). Llaman a `EventProcessor`
+    directamente.
+  - Hecho así (2026-10-22): `RestartIT` también se movió aquí (→ `ProcessorRestartIT`), no en
+    T09, porque sin procesamiento en la API ya no podía pasar. `Alert` y `AlertRepository` se
+    movieron enteros; la API lee el histórico con `AlertQueryRepository` → `AlertView`, como
+    `ZoneQueryRepository` → `ZoneView`.
   - **Hecho junto con T05** (un solo commit): sin `EventService`, el `POST` de la API no
     compila hasta que publica.
   - **Verificación:** con T05.
 
-- [ ] **T05 — La API publica en Kafka** (plan §5.1)
+- [x] **T05 — La API publica en Kafka** (plan §5.1)
   - `EventPublisher`, `ZoneQueryRepository.exists`, `KafkaTopicsConfig`, configuración
     del productor (`acks: all` y los tres tiempos), `EventNotPublishedException` → 503 con
-    `Retry-After` y su texto en `messages.properties`; `AlertRepository` solo consulta.
+    `Retry-After` (texto en el handler, como el 404 y el 422); `AlertQueryRepository` solo consulta.
   - `EventIngestionIT` (lo que se queda) y `EventPublishingIT`: CA1 (parte API), CA3, CA5
     (parte API).
   - **Mutación:** clave = `eventId` → falla CA5 de `EventPublishingIT`; restaurar.
@@ -104,8 +109,7 @@ tests, ninguna aserción se borra ni se relaja: cambia de sitio (plan §7).
   - `AtLeastOnceIT`: fallo después del commit → cuenta una vez; fallo antes del commit →
     se reentrega y cuenta.
   - `ProcessorRestartIT`: 1 000 eventos, parar y arrancar el listener a mitad → exacto;
-    estado y alertas iguales tras reiniciar la aplicación entera (lo que hacía `RestartIT`,
-    que se elimina de `api` al pasar aquí).
+    (el reinicio de la aplicación entera ya está en `ProcessorRestartIT` desde T04).
   - **Mutaciones:** `ack()` antes de procesar → falla el fallo-antes-del-commit; ignorar
     el resultado de `insertIfAbsent` → falla el fallo-después-del-commit y CA4; restaurar.
   - **Verificación:** `./mvnw verify`, 3 veces seguidas en verde.

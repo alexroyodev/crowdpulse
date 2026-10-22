@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: crowdpulse-processor
+  docker:
+    compose:
+      # compose.yaml lives at the repository root; spring-boot:run uses processor/ as working directory.
+      file: ../compose.yaml
+      # Never stop the containers on shutdown: the API uses them too (plan 003, section 6).
+      lifecycle-management: start-only
+
+server:
+  # The API listens on 8080.
+  port: 8081
+  error:
+    include-stacktrace: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+logging:
+  structured:
+    format:
+      console: ecs
+
+crowdpulse:
+  # Spec 002 (D1): enter a level at enter-pct, leave it only below exit-pct (hysteresis).
+  alerts:
+    warning:
+      enter-pct: 85
+      exit-pct: 80
+    critical:
+      enter-pct: 95
+      exit-pct: 90

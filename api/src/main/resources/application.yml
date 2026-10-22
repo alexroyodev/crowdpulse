@@ -11,6 +11,16 @@ spring:
     locale-resolver: fixed
   messages:
     fallback-to-system-locale: false
+  kafka:
+    # Bootstrap servers: Spring Boot's default, localhost:9092, as published by compose.yaml.
+    producer:
+      # 202 only when the broker has stored the event (spec 003, rule 3).
+      acks: all
+      # How long POST /events may wait for Kafka before answering 503 (D3): about 3 s in total.
+      properties:
+        "[max.block.ms]": 3000
+        "[request.timeout.ms]": 2000
+        "[delivery.timeout.ms]": 3000
 
 server:
   error:
@@ -31,11 +41,3 @@ crowdpulse:
   events:
     # Maximum allowed distance of occurredAt into the future (spec 001).
     max-future-skew: 5m
-  # Spec 002 (D1): enter a level at enter-pct, leave it only below exit-pct (hysteresis).
-  alerts:
-    warning:
-      enter-pct: 85
-      exit-pct: 80
-    critical:
-      enter-pct: 95
-      exit-pct: 90
