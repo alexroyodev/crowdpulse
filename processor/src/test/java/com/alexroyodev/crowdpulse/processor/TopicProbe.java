@@ -4,8 +4,10 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.springframework.kafka.core.ConsumerFactory;
@@ -27,14 +29,14 @@ public final class TopicProbe {
 
 	/** Remembers the current end of every partition. */
 	public void mark() {
-		try (Consumer<String, String> consumer = consumers.createConsumer(null, "-probe")) {
+		try (Consumer<String, String> consumer = createConsumer()) {
 			mark = consumer.endOffsets(partitions(consumer));
 		}
 	}
 
 	/** Records published since {@link #mark()}, partition by partition, each in its own order. */
 	public List<ConsumerRecord<String, String>> published() {
-		try (Consumer<String, String> consumer = consumers.createConsumer(null, "-probe")) {
+		try (Consumer<String, String> consumer = createConsumer()) {
 			List<TopicPartition> partitions = partitions(consumer);
 			Map<TopicPartition, Long> end = consumer.endOffsets(partitions);
 			consumer.assign(partitions);
@@ -49,6 +51,13 @@ public final class TopicProbe {
 			}
 			return records;
 		}
+	}
+
+	/** Never commits: in the processor the factory's group is the processor's own. */
+	private Consumer<String, String> createConsumer() {
+		Properties noCommits = new Properties();
+		noCommits.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+		return consumers.createConsumer(null, "-probe", null, noCommits);
 	}
 
 	private List<TopicPartition> partitions(Consumer<String, String> consumer) {

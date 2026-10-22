@@ -15,6 +15,10 @@ spring:
       file: ../compose.yaml
       # Never stop the containers on shutdown: the API uses them too (plan 003, section 6).
       lifecycle-management: start-only
+  mvc:
+    # Errors of the dead-letter endpoint as RFC 9457 ProblemDetail, like the API's.
+    problemdetails:
+      enabled: true
   kafka:
     # Bootstrap servers: Spring Boot's default, localhost:9092, as published by compose.yaml.
     consumer:
@@ -22,7 +26,7 @@ spring:
       # The first time the group starts, read the topic from the beginning: with Kafka's default
       # (latest) the events published before that first start would be skipped.
       auto-offset-reset: earliest
-      # enable-auto-commit is already false in Spring Boot: the listener container commits, not the client.
+      # The listener container turns the client's enable.auto.commit off and commits itself.
     listener:
       # Commit each message's offset right after its database transaction (spec 003, rule 4).
       ack-mode: record

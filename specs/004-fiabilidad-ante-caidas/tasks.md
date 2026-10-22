@@ -58,7 +58,7 @@ Al terminar se marca `[x]`. `DeadLetterIT` debe seguir en verde en todas (CA6).
     instancia no arrancaba). Se pasan como argumentos de línea de comandos, también en
     `ProcessorRestartIT`. 3 `verify` seguidos en verde (171 tests).
 
-- [ ] **T06 — Reproceso del DLT** (plan §5; D2, CA5)
+- [x] **T06 — Reproceso del DLT** (plan §5; D2, CA5)
   - Paquete `deadletter`: `DeadLetterController` y `DeadLetterReplayer`;
     `spring.mvc.problemdetails.enabled: true` y textos en español.
   - `DeadLetterReplayIT`: zona inexistente → DLT → se añade la zona con SQL → `replay` →
@@ -67,6 +67,12 @@ Al terminar se marca `[x]`. `DeadLetterIT` debe seguir en verde en todas (CA6).
   - **Mutaciones:** sin copiar la cabecera de versión → el mensaje vuelve al DLT; sin
     confirmar los offsets del grupo → la segunda llamada reenvía otra vez; restaurar.
   - **Verificación:** `./mvnw verify`; manual: `curl -X POST localhost:8081/admin/dead-letters/replay`.
+  - Hecho así (2026-10-22): un consumidor creado a mano tiene `enable.auto.commit=true` (solo
+    los contenedores de listener lo desactivan): el reproceso lo desactiva y confirma tras
+    publicar, y los `TopicProbe` de test tampoco confirman (en el `processor` usaban su grupo).
+    Lo destapó la mutación «sin `commitSync`», que al principio no fallaba. Los dos tests
+    adelantan el grupo de reproceso al final del DLT antes de empezar, para no depender del
+    orden. Manual: un mensaje sin arreglo vuelve al DLT y rebota en cada llamada (esperado).
 
 ## Bloque C — API
 
