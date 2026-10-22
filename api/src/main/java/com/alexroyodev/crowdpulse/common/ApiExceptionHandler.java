@@ -11,12 +11,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.core.NestedExceptionUtils;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -27,6 +29,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import com.alexroyodev.crowdpulse.event.EventNotPublishedException;
 import com.alexroyodev.crowdpulse.event.EventRequest;
+import com.alexroyodev.crowdpulse.shared.DatabaseUnavailable;
 import com.alexroyodev.crowdpulse.zone.UnknownZoneException;
 import com.alexroyodev.crowdpulse.zone.ZoneNotFoundException;
 
@@ -159,6 +162,27 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 				"No se ha podido registrar el evento; reinténtalo.");
 		problem.setTitle("Servicio no disponible");
 		problem.setProperty("eventId", ex.eventId());
+		return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+				.header(HttpHeaders.RETRY_AFTER, "1")
+				.body(problem);
+	}
+
+	/**
+	 * 503: the database cannot be reached (spec 004, D3). Without the zone catalogue the API cannot
+	 * tell whether an event is valid, so it accepts nothing; the sensor retries. Any other data
+	 * access failure is still an unexpected error (500).
+	 */
+	@ExceptionHandler({ DataAccessException.class, CannotCreateTransactionException.class })
+	ResponseEntity<ProblemDetail> handleDataAccess(Exception ex) {
+		if (!DatabaseUnavailable.isCause(ex)) {
+			return ResponseEntity.internalServerError().body(handleUnexpected(ex));
+		}
+		log.atWarn().setMessage("Request rejected: database unavailable")
+				.addKeyValue("cause", NestedExceptionUtils.getMostSpecificCause(ex).toString())
+				.log();
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE,
+				"La base de datos no está disponible; reinténtalo.");
+		problem.setTitle("Servicio no disponible");
 		return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
 				.header(HttpHeaders.RETRY_AFTER, "1")
 				.body(problem);

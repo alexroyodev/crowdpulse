@@ -7,8 +7,9 @@ spring:
       # processor's backoff and the API's 503 depend on noticing it quickly.
       connection-timeout: 3000
       data-source-properties:
-        # Seconds. A database that hangs (instead of refusing) would block a query forever.
-        socketTimeout: 10
+        # Seconds. A database that hangs (instead of refusing) would block a query forever. The API
+        # only runs tiny queries, so 3 s (the processor uses 10): a sensor gets its 503 sooner.
+        socketTimeout: 3
   docker:
     compose:
       # compose.yaml lives at the repository root; spring-boot:run uses api/ as working directory.

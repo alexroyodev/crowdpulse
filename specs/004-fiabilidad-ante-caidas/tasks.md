@@ -76,13 +76,18 @@ Al terminar se marca `[x]`. `DeadLetterIT` debe seguir en verde en todas (CA6).
 
 ## Bloque C — API
 
-- [ ] **T07 — 503 sin base de datos** (plan §6; D3, CA7)
+- [x] **T07 — 503 sin base de datos** (plan §6; D3, CA7)
   - `ApiExceptionHandler`: excepciones de `DatabaseUnavailable` → 503 `ProblemDetail` con
     `Retry-After: 1` y `WARN`.
   - `DatabaseDownIT` (sus propios contenedores): PostgreSQL en pausa → `POST` y
     `GET /zones` → 503, nunca 500; al volver, 202.
   - **Mutación:** sin el manejador → 500; restaurar.
   - **Verificación:** `./mvnw verify`; manual: `docker compose pause postgres` + `curl`.
+  - Hecho así (2026-10-22): el 503 tardaba 18,9 s (comprobación de la conexión + 10 s de
+    `socketTimeout`); la API usa `socketTimeout: 3` (sus consultas son mínimas) y responde en
+    ~3 s en el test, ~5 s a mano. El texto es genérico («La base de datos no está
+    disponible»), porque también lo reciben los `GET`. Manual: `POST` y `GET /zones` → 503,
+    salud del `processor` → 503 (`DOWN`); al reanudar, 202.
 
 ## Bloque D — Cierre
 
