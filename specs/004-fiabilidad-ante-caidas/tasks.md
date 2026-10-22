@@ -48,11 +48,15 @@ Al terminar se marca `[x]`. `DeadLetterIT` debe seguir en verde en todas (CA6).
   - Si aparece un fallo, se analiza antes de tocar código (el plan no espera ninguno).
   - **Verificación:** `./mvnw verify`.
 
-- [ ] **T05 — Dos instancias del `processor`** (plan §4; CA4)
+- [x] **T05 — Dos instancias del `processor`** (plan §4; CA4)
   - `TwoInstancesIT`: dos aplicaciones sobre los mismos contenedores; las dos reciben
     particiones; se cierra una a mitad de 1 000 eventos → la otra termina; exacto, sin
     anomalías.
   - **Verificación:** `./mvnw verify`, 3 veces seguidas en verde (depende del reparto).
+  - Hecho así (2026-10-22): las propiedades de `SpringApplicationBuilder.properties()` son
+    valores por defecto y el `server.port: 8081` del `application.yml` les ganaba (la segunda
+    instancia no arrancaba). Se pasan como argumentos de línea de comandos, también en
+    `ProcessorRestartIT`. 3 `verify` seguidos en verde (171 tests).
 
 - [ ] **T06 — Reproceso del DLT** (plan §5; D2, CA5)
   - Paquete `deadletter`: `DeadLetterController` y `DeadLetterReplayer`;

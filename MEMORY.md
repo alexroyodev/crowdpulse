@@ -6,7 +6,7 @@
 - Spec activa: `specs/004-fiabilidad-ante-caidas/` (fase 3): D1–D4 resueltas (BD caída:
   reintento sin límite 1→30 s; replay del DLT por endpoint; API 503 sin BD; constitución
   enmendada). Spec y plan aprobados (`DatabaseUnavailable` en `shared`, con spring-tx/jdbc).
-  `tasks.md` aprobado. Hecho: T01–T04. Siguiente: T05.
+  `tasks.md` aprobado. Hecho: T01–T05. Siguiente: T06.
 - Código: monorepo Maven; módulos `shared/` (migraciones, enums, `SensorEventMessage` v1,
   `Topics`), `api/` (valida, 422, publica; consultas), `processor/` (8081, `EventProcessor`:
   reglas de 001 y 002) y `simulator/`.

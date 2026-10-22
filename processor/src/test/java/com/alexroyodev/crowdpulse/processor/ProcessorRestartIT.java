@@ -144,7 +144,7 @@ class ProcessorRestartIT {
 
 		int storedWhenStopped;
 		// The listener starts only once all 1 000 are in the topic, so the stop really is halfway.
-		try (ConfigurableApplicationContext app = startProcessor("spring.kafka.listener.auto-startup=false")) {
+		try (ConfigurableApplicationContext app = startProcessor("--spring.kafka.listener.auto-startup=false")) {
 			TopicPublisher topic = new TopicPublisher(app.getBean(KafkaTemplate.class), app.getBean(JsonMapper.class));
 			messages.forEach(topic::publish);
 			app.getBean(KafkaListenerEndpointRegistry.class).start();
@@ -162,17 +162,17 @@ class ProcessorRestartIT {
 		assertThat(jdbc.sql("SELECT count(*) FROM sensor_event WHERE anomaly").query(Integer.class).single()).isZero();
 	}
 
-	private static ConfigurableApplicationContext startProcessor(String... extraProperties) {
-		return new SpringApplicationBuilder(ProcessorApplication.class)
-				.properties(extraProperties)
-				.properties(
-						"server.port=0",
-						"spring.docker.compose.enabled=false",
-						"spring.datasource.url=" + postgres.getJdbcUrl(),
-						"spring.datasource.username=" + postgres.getUsername(),
-						"spring.datasource.password=" + postgres.getPassword(),
-						"spring.kafka.bootstrap-servers=" + kafka.getBootstrapServers())
-				.run();
+	/** Command-line arguments, not builder properties: those are defaults and application.yml (port 8081) wins. */
+	private static ConfigurableApplicationContext startProcessor(String... extraArguments) {
+		List<String> arguments = new ArrayList<>(List.of(
+				"--server.port=0",
+				"--spring.docker.compose.enabled=false",
+				"--spring.datasource.url=" + postgres.getJdbcUrl(),
+				"--spring.datasource.username=" + postgres.getUsername(),
+				"--spring.datasource.password=" + postgres.getPassword(),
+				"--spring.kafka.bootstrap-servers=" + kafka.getBootstrapServers()));
+		arguments.addAll(List.of(extraArguments));
+		return new SpringApplicationBuilder(ProcessorApplication.class).run(arguments.toArray(String[]::new));
 	}
 
 	private static void process(ConfigurableApplicationContext app, String zoneId, EventType type) {
