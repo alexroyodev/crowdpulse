@@ -13,6 +13,15 @@
 
 	<!-- Almost no dependencies on purpose: a plain jar both applications depend on (plan 003, section 2). -->
 	<dependencies>
+		<!-- Only for DatabaseUnavailable, which recognises Spring's data access exceptions (spec 004, plan 8.1). -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jdbc</artifactId>
+		</dependency>
 		<!-- Annotations only, no implementation: the message states its own required fields. -->
 		<dependency>
 			<groupId>jakarta.validation</groupId>

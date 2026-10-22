@@ -1,6 +1,6 @@
 # Tareas 004 — Fiabilidad ante caídas
 
-- **Estado:** Borrador, pendiente de aprobación
+- **Estado:** Aprobado (2026-10-22)
 - **Spec:** [`spec.md`](spec.md) · **Plan:** [`plan.md`](plan.md)
 
 Una tarea cada vez. Está terminada cuando su verificación pasa, `./mvnw verify` está en
@@ -11,7 +11,7 @@ Al terminar se marca `[x]`. `DeadLetterIT` debe seguir en verde en todas (CA6).
 
 ## Bloque A — Base
 
-- [ ] **T01 — `DatabaseUnavailable` en `shared`** (plan §2.1, §8.1)
+- [x] **T01 — `DatabaseUnavailable` en `shared`** (plan §2.1, §8.1)
   - `shared/pom.xml`: `spring-tx` y `spring-jdbc` (versión de Spring Boot).
   - `shared.DatabaseUnavailable.isCause(Throwable)`: recorre la cadena de causas buscando
     las cuatro excepciones del plan §2.1.
