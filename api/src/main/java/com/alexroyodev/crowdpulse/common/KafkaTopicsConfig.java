@@ -11,13 +11,9 @@ import com.alexroyodev.crowdpulse.shared.Topics;
 @Configuration(proxyBeanMethods = false)
 class KafkaTopicsConfig {
 
-	/**
-	 * 3 partitions for 5 zones: several zones share a partition, which shows that the order per
-	 * zone comes from the key, not from one partition per zone (plan 003, section 4).
-	 */
 	@Bean
 	NewTopic sensorEventsTopic() {
-		return TopicBuilder.name(Topics.SENSOR_EVENTS).partitions(3).replicas(1).build();
+		return TopicBuilder.name(Topics.SENSOR_EVENTS).partitions(Topics.SENSOR_EVENTS_PARTITIONS).replicas(1).build();
 	}
 
 }

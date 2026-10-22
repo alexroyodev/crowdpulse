@@ -16,6 +16,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -32,6 +33,9 @@ class ProcessorRestartIT {
 
 	private static final PostgreSQLContainer postgres = new PostgreSQLContainer(DockerImageName.parse("postgres:18"));
 
+	// Its own broker: without it the processor would connect to localhost:9092, compose's Kafka.
+	private static final KafkaContainer kafka = new KafkaContainer(TestcontainersConfiguration.KAFKA_IMAGE);
+
 	private static JdbcClient jdbc;
 
 	record ZoneRow(String zoneId, int occupancy, String alertLevel) {
@@ -43,6 +47,7 @@ class ProcessorRestartIT {
 	@BeforeAll
 	static void startDatabase() {
 		postgres.start();
+		kafka.start();
 		jdbc = JdbcClient.create(new DriverManagerDataSource(postgres.getJdbcUrl(), postgres.getUsername(),
 				postgres.getPassword()));
 	}
@@ -50,6 +55,7 @@ class ProcessorRestartIT {
 	@AfterAll
 	static void stopDatabase() {
 		postgres.stop();
+		kafka.stop();
 	}
 
 	@BeforeEach
@@ -122,7 +128,8 @@ class ProcessorRestartIT {
 						"spring.docker.compose.enabled=false",
 						"spring.datasource.url=" + postgres.getJdbcUrl(),
 						"spring.datasource.username=" + postgres.getUsername(),
-						"spring.datasource.password=" + postgres.getPassword())
+						"spring.datasource.password=" + postgres.getPassword(),
+						"spring.kafka.bootstrap-servers=" + kafka.getBootstrapServers())
 				.run();
 	}
 

@@ -5,8 +5,8 @@
   final de su `tasks.md`).
 - Spec activa: `specs/003-procesamiento-asincrono/`: spec, plan y tareas aprobados
   (2026-10-22), con permiso para `shared`, `processor`, Kafka, 9092 fijo y V5.
-  Hecho: T01–T06. Siguiente: T07. Kafka `apache/kafka:4.2.2`. Hasta T07 no hay camino de
-  extremo a extremo (la API publica, nadie consume todavía).
+  Hecho: T01–T06. Siguiente: T07. Kafka `apache/kafka:4.2.2`.
+  Mensaje validado con anotaciones en `SensorEventMessage` (solo `jakarta.validation-api`).
 - Código: monorepo Maven; módulos `shared/` (migraciones, enums, `SensorEventMessage` v1,
   `Topics`), `api/` (valida, 422, publica; consultas), `processor/` (8081, `EventProcessor`:
   reglas de 001 y 002) y `simulator/`.

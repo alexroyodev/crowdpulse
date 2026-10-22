@@ -81,11 +81,15 @@ tests, ninguna aserción se borra ni se relaja: cambia de sitio (plan §7).
 
 ## Bloque C — Consumo
 
-- [ ] **T07 — Listener del `processor`** (plan §5.2; CA1, CA4, CA5, CA8)
+- [x] **T07 — Listener del `processor`** (plan §5.2; CA1, CA4, CA5, CA8)
   - `SensorEventListener` (versión, JSON, Bean Validation), `ack-mode: record`,
     `auto-offset-reset: earliest`, `group-id`; log `DEBUG "Event processed"` con
     `latencyMs`.
   - Utilidad de espera en los tests (cada 100 ms, máximo 10 s).
+  - Hecho así (2026-10-22): las restricciones van como anotaciones en `SensorEventMessage`
+    (`jakarta.validation-api`, solo anotaciones, en `shared`); el `processor` también declara
+    el topic (`Topics.SENSOR_EVENTS_PARTITIONS`) para que no lo cree el broker con 1 partición.
+    Simulador corto: sin T10 lee antes de tiempo (no cuadra); 2 s después, las 4 zonas cuadran.
   - `KafkaProcessingIT`: CA1, CA4, CA5 (`ENTRY`/`EXIT` alternos sin anomalías), CA8
     (1 000 desde 20 hilos; cruce de umbral; anomalía).
   - **Verificación:** `./mvnw verify`; manual: API + `processor` en marcha, `curl` de un

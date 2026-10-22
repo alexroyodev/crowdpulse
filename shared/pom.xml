@@ -11,8 +11,13 @@
 	<name>crowdpulse-shared</name>
 	<description>What api and processor must see alike: database migrations, enums and the event message contract</description>
 
-	<!-- No runtime dependencies on purpose: a plain jar both applications depend on (plan 003, section 2). -->
+	<!-- Almost no dependencies on purpose: a plain jar both applications depend on (plan 003, section 2). -->
 	<dependencies>
+		<!-- Annotations only, no implementation: the message states its own required fields. -->
+		<dependency>
+			<groupId>jakarta.validation</groupId>
+			<artifactId>jakarta.validation-api</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter</artifactId>
