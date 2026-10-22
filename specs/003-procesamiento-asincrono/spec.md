@@ -1,6 +1,6 @@
 # Spec 003 — Procesamiento asíncrono con Kafka
 
-- **Estado:** Borrador: decisiones D1–D4 resueltas (2026-10-21), pendiente de aprobación
+- **Estado:** Aprobada (2026-10-22); decisiones D1–D4 resueltas el 2026-10-21
 - **Fase:** 2
 - **Fecha:** 2026-10-21
 - **Depende de:** [spec 001](../001-ingesta-mvp/spec.md), [spec 002](../002-alertas-umbrales/spec.md)

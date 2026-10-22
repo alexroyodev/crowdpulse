@@ -4,10 +4,9 @@
 - Fase: 1 (MVP síncrono, sin Kafka). Objetivo de la fase cumplido.
 - Specs 001 (ingesta) y 002 (alertas): **terminadas** (2026-10-21); la verificación de
   cada CA está al final de su `tasks.md`.
-- Spec activa: `specs/003-procesamiento-asincrono/` (fase 2) — borrador con D1–D4
-  resueltas; pendiente de aprobar la spec, después `plan.md`. El plan pedirá permiso para:
-  módulo `processor`, spring-kafka + Testcontainers Kafka, Kafka en `compose.yaml`,
-  columna `processed_at`.
+- Spec activa: `specs/003-procesamiento-asincrono/` (fase 2): spec y plan aprobados
+  (2026-10-22), con los permisos que pedía el plan (módulos `shared` y `processor`, Kafka,
+  `compose.yaml` con 9092 fijo, V5). `tasks.md` (T01–T11) aprobado; siguiente: T01.
 - Código: monorepo Maven; `pom.xml` raíz es el padre; módulos `api/` (Spring Boot 4.1)
   y `simulator/` (Java plano). 121 tests (`./mvnw verify`).
 
@@ -30,10 +29,8 @@
   desconocida, EXIT en 0 y 400 → WARN.
 - `lastEventAt` siempre en UTC con milisegundos (`@JsonFormat` en `ZoneView`); la BD
   guarda microsegundos.
-- Pruebas de mutación hechas: sin `FOR UPDATE` → 169 de 1 000; sin `@Transactional`
-  → el evento queda guardado. Duplicados concurrentes: los protege la PK, no el bloqueo.
-  Spec 002: sin histéresis fallan 4 de `AlertPolicyTest`; sin `@Transactional` falla
-  `AlertAtomicityIT`; sin `FOR UPDATE`, 20 ENTRY concurrentes → 16 992 en vez de 17 010.
+- Pruebas de mutación hechas en 001 y 002 (sin `FOR UPDATE`, sin `@Transactional`, sin
+  histéresis): todas fallaron como debían; detalle al final de cada `tasks.md`.
 - `Concurrently.run` (test): utilidad compartida para lanzar N hilos a la vez.
 - Simulador: un hilo por zona con envío síncrono (orden por zona); P(ENTRY) 0,9→0,3
   para que al final quede gente y CA10 compare números reales; comprueba CA10 solo.
@@ -41,7 +38,8 @@
   `alert`), V4 (zona `PALCO`). No editarlas: cambios en V5+.
 
 ## Problemas abiertos
-- (ninguno)
+- Spec 003: con PostgreSQL caído más de ~3 s, los eventos van al DLT y la ocupación queda
+  mal hasta reprocesarlos. Aceptado para la fase 2; distinguirlo es de la fase 3.
 
 ## Errores a evitar
 - Git Bash no tiene `/proc/sys/kernel/random/uuid` ni `uuidgen`: UUIDs con
