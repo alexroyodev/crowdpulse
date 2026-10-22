@@ -7,15 +7,19 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.NestedExceptionUtils;
+import org.springframework.kafka.KafkaException;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.ConsumerRecordRecoverer;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.util.backoff.BackOff;
+import org.springframework.util.backoff.ExponentialBackOff;
 import org.springframework.util.backoff.FixedBackOff;
 
 import com.alexroyodev.crowdpulse.processor.event.UnknownZoneException;
 import com.alexroyodev.crowdpulse.processor.event.UnsupportedMessageVersionException;
+import com.alexroyodev.crowdpulse.shared.DatabaseUnavailable;
 import com.alexroyodev.crowdpulse.shared.Topics;
 
 import jakarta.validation.ConstraintViolationException;
@@ -52,7 +56,7 @@ class KafkaConfig {
 	 * message is not committed and is tried again.
 	 */
 	@Bean
-	DefaultErrorHandler errorHandler(KafkaTemplate<String, String> template, JsonMapper json) {
+	DefaultErrorHandler errorHandler(KafkaTemplate<String, String> template, JsonMapper json, DatabaseOutage outage) {
 		DeadLetterPublishingRecoverer deadLetter = new DeadLetterPublishingRecoverer(template,
 				// Negative partition: Kafka chooses it from the key.
 				(record, ex) -> new TopicPartition(Topics.SENSOR_EVENTS_DLT, -1));
@@ -73,7 +77,24 @@ class KafkaConfig {
 		// Failures that retrying cannot fix go to the dead-letter topic at the first attempt.
 		handler.addNotRetryableExceptions(JacksonException.class, ConstraintViolationException.class,
 				UnsupportedMessageVersionException.class, UnknownZoneException.class);
+		// Spec 004 (D1): if the database is not available the message is not to blame. Retry it
+		// without limit, so the partition waits and nothing goes to the dead-letter topic.
+		handler.setBackOffFunction((record, ex) -> DatabaseUnavailable.isCause(ex) ? untilTheDatabaseIsBack() : null);
+		handler.setRetryListeners((record, ex, deliveryAttempt) -> {
+			if (DatabaseUnavailable.isCause(ex)) {
+				outage.failed(ex);
+			}
+		});
+		// One WARN per outage (DatabaseOutage) instead of an ERROR per attempt.
+		handler.setLogLevel(KafkaException.Level.DEBUG);
 		return handler;
+	}
+
+	/** 1, 2, 4, 8, 16 s and then every 30 s, with no limit. */
+	private static BackOff untilTheDatabaseIsBack() {
+		ExponentialBackOff backOff = new ExponentialBackOff(1_000L, 2.0);
+		backOff.setMaxInterval(30_000L);
+		return backOff;
 	}
 
 	/** Best effort: the eventId if the value is JSON with one, so the log can be searched by it. */

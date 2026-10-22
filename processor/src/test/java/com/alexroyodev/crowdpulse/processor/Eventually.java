@@ -5,7 +5,7 @@ import java.util.function.BooleanSupplier;
 
 /**
  * Test helper for asynchronous processing: checks a condition every 100 ms until it holds or 10 s
- * have passed. A loop of a few lines instead of a library (plan 003, section 7).
+ * (or the given timeout) have passed. A loop of a few lines instead of a library (plan 003, section 7).
  */
 public final class Eventually {
 
@@ -16,10 +16,15 @@ public final class Eventually {
 	}
 
 	public static void await(String what, BooleanSupplier condition) {
-		long deadline = System.nanoTime() + TIMEOUT.toNanos();
+		await(what, TIMEOUT, condition);
+	}
+
+	/** For waits known to be longer, e.g. the processor's backoff after a database outage. */
+	public static void await(String what, Duration timeout, BooleanSupplier condition) {
+		long deadline = System.nanoTime() + timeout.toNanos();
 		while (!condition.getAsBoolean()) {
 			if (System.nanoTime() > deadline) {
-				throw new AssertionError("Not true after " + TIMEOUT.toSeconds() + " s: " + what);
+				throw new AssertionError("Not true after " + timeout.toSeconds() + " s: " + what);
 			}
 			try {
 				Thread.sleep(INTERVAL);

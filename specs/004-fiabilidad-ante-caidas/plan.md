@@ -39,6 +39,7 @@ responde `true` si encuentra:
 | `DataAccessResourceFailureException` (y su hija `CannotGetJdbcConnectionException`) | Spring traduce así los errores de conexión de PostgreSQL (estado SQL `08…`) |
 | `TransientDataAccessResourceException` | Recurso no disponible de forma pasajera |
 | `java.sql.SQLTransientConnectionException` | Hikari no consigue conexión en `connection-timeout` |
+| Cualquier `SQLException` con estado SQL `08…` | Añadido en T03: si la conexión muere a mitad de la transacción, el rollback también falla y Spring lanza la `TransactionSystemException` del rollback; solo el estado SQL del driver dice qué pasó |
 
 **Lista cerrada y estrecha, a propósito.** Si un error que no es de conexión se
 clasificara como tal, su mensaje se reintentaría para siempre y bloquearía su partición.

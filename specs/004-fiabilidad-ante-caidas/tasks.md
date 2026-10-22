@@ -26,7 +26,7 @@ Al terminar se marca `[x]`. `DeadLetterIT` debe seguir en verde en todas (CA6).
 
 ## Bloque B — `processor`
 
-- [ ] **T03 — Esperar a la base de datos sin límite** (plan §2.2, §2.4; CA1, CA2)
+- [x] **T03 — Esperar a la base de datos sin límite** (plan §2.2, §2.4; CA1, CA2)
   - `KafkaConfig`: `setBackOffFunction` (D1), `RetryListener` → `DatabaseOutage.failed()`,
     `setLogLevel(DEBUG)`.
   - `DatabaseOutage` (`common`): `WARN` al caer y al volver, con la duración.
@@ -35,6 +35,12 @@ Al terminar se marca `[x]`. `DeadLetterIT` debe seguir en verde en todas (CA6).
     PostgreSQL en pausa 15 s; durante la pausa, `health` `DOWN`; al volver, ocupación
     exacta, sin anomalías, DLT vacío, un `WARN` de caída y uno de recuperación.
   - **Mutación:** `isCause` siempre `false` → eventos en el DLT y el test falla; restaurar.
+  - Hecho así (2026-10-22): (1) si la conexión muere a mitad de la transacción, el rollback
+    también falla y Spring lanza su `TransactionSystemException`: `DatabaseUnavailable` ahora
+    reconoce además cualquier `SQLException` con estado SQL `08…` (excepción de conexión).
+    (2) La pausa es de 30 s y no de 15: el primer fallo solo aparece a los ~10 s
+    (`socketTimeout`), y con 15 s la mutación no llegaba a mandar nada al DLT, así que esa
+    aserción no probaba nada. Con 30 s, sin clasificación un evento va al DLT y el test falla.
   - **Verificación:** `./mvnw verify`.
 
 - [ ] **T04 — Kafka caído durante el consumo** (plan §3; CA3)

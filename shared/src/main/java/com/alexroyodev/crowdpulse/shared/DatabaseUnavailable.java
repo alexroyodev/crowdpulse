@@ -1,5 +1,6 @@
 package com.alexroyodev.crowdpulse.shared;
 
+import java.sql.SQLException;
 import java.sql.SQLTransientConnectionException;
 import java.util.List;
 
@@ -26,11 +27,20 @@ public final class DatabaseUnavailable {
 	private DatabaseUnavailable() {
 	}
 
+	/** SQL standard: SQL states of class 08 are connection exceptions (e.g. 08003, 08006). */
+	private static final String CONNECTION_EXCEPTION_CLASS = "08";
+
 	/** True if the exception, or any of its causes, means that the database cannot be reached. */
 	public static boolean isCause(Throwable ex) {
 		for (Throwable current = ex; current != null; current = current.getCause()) {
 			Throwable candidate = current;
 			if (CAUSES.stream().anyMatch(type -> type.isInstance(candidate))) {
+				return true;
+			}
+			// A connection lost mid-transaction makes the rollback fail too, and Spring then throws the
+			// rollback's TransactionSystemException: only the driver's SQL state says what happened.
+			if (current instanceof SQLException sql && sql.getSQLState() != null
+					&& sql.getSQLState().startsWith(CONNECTION_EXCEPTION_CLASS)) {
 				return true;
 			}
 		}

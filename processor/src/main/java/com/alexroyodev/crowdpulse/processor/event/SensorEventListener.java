@@ -9,6 +9,7 @@ import org.apache.kafka.common.header.Header;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import com.alexroyodev.crowdpulse.processor.common.DatabaseOutage;
 import com.alexroyodev.crowdpulse.shared.SensorEventMessage;
 import com.alexroyodev.crowdpulse.shared.Topics;
 
@@ -31,11 +32,13 @@ class SensorEventListener {
 	private final EventProcessor processor;
 	private final JsonMapper json;
 	private final Validator validator;
+	private final DatabaseOutage outage;
 
-	SensorEventListener(EventProcessor processor, JsonMapper json, Validator validator) {
+	SensorEventListener(EventProcessor processor, JsonMapper json, Validator validator, DatabaseOutage outage) {
 		this.processor = processor;
 		this.json = json;
 		this.validator = validator;
+		this.outage = outage;
 	}
 
 	// idIsGroup = false: otherwise Spring Kafka uses the id as consumer group, overriding
@@ -50,6 +53,7 @@ class SensorEventListener {
 			throw new ConstraintViolationException(violations);
 		}
 		processor.process(message);
+		outage.succeeded();
 	}
 
 	private static void checkVersion(Header header) {
