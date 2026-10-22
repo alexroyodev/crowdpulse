@@ -1,6 +1,6 @@
 # Spec 004 — Fiabilidad ante caídas
 
-- **Estado:** Borrador, con decisiones pendientes (D1–D4)
+- **Estado:** Borrador: decisiones D1–D4 resueltas (2026-10-22), pendiente de aprobación
 - **Fase:** 3
 - **Fecha:** 2026-10-22
 - **Depende de:** [spec 003](../003-procesamiento-asincrono/spec.md)
@@ -35,7 +35,9 @@ Y que todo eso esté demostrado con tests.
 - Kafka caído durante el consumo: al volver, el `processor` sigue sin pérdidas ni dobles.
 - Dos instancias del `processor` a la vez, y una cae a mitad: la otra se queda con sus
   particiones y el resultado es exacto.
-- Una forma de reprocesar los mensajes del DLT cuando se ha arreglado la causa (D2).
+- Reprocesar los mensajes del DLT cuando se ha arreglado la causa, con un endpoint del
+  `processor` (D2).
+- La API responde 503, no 500, cuando no puede consultar el catálogo de zonas (D3).
 
 ### Fuera de alcance
 - *Exactly-once*, transacciones de Kafka.
@@ -74,14 +76,15 @@ Y que todo eso esté demostrado con tests.
   se había aplicado, no cuenta dos veces.
 - **CA6** — Regresión de la spec 003: JSON roto, campo que falta, versión desconocida y
   zona inexistente siguen yendo al DLT al primer intento.
-- **CA7** — Con PostgreSQL caído, `POST /api/v1/events` se comporta según D3 (propuesta:
-  503 con `ProblemDetail`, nunca 202 sin el evento en Kafka ni un 500).
+- **CA7** — Con PostgreSQL caído, `POST /api/v1/events` responde 503 con `ProblemDetail`
+  (D3): nunca 202 y nunca un 500. Hoy responde 500, porque el error de la base de datos
+  llega al manejador genérico.
 - **CA8** — `./mvnw verify` pasa en verde desde un clon limpio.
 
-## Decisiones pendientes del autor
-| Id | Pregunta | Propuesta |
-|----|----------|-----------|
-| D1 | ¿Cuánto espera el `processor` entre reintentos cuando la base de datos no responde, y hay un límite? | **[DECISIÓN PENDIENTE]** Espera creciente de 1 s a 30 s (1, 2, 4, 8, 16, 30, 30…) y **sin límite**: un evento correcto nunca va al DLT por una caída de la base de datos. Un `WARN` al empezar a fallar y otro cuando se recupera |
-| D2 | ¿Cómo se reprocesa el DLT? | **[DECISIÓN PENDIENTE]** Opciones: (a) un endpoint del `processor`, `POST /admin/dead-letters/replay`, que vuelve a publicar en el topic principal lo que hay en el DLT; (b) comandos de Kafka documentados en el README (`kafka-console-consumer` + `kafka-console-producer`, cuidando clave y cabeceras); (c) un modo del `processor` que se lanza a mano y termina. Propuesta: **(a)**, porque se puede probar con un test de integración. Al ser solo para uso local, sin autenticación por ahora; la seguridad quedaría para cuando haya despliegue |
-| D3 | ¿Qué hace la API con PostgreSQL caído? Hoy consulta el catálogo para dar el 422 (D2 de la spec 003), así que también falla | **[DECISIÓN PENDIENTE]** Propuesta: **dejarlo como está**: si la base de datos está caída, la API responde 503 (no puede saber si la zona existe). La regla 3 solo se cumple si el catálogo está disponible. La alternativa sería una caché del catálogo en la API; añade la pregunta de cuándo se invalida |
-| D4 | La constitución pone «Idempotencia en el consumidor, DLT» en la fase 3, y la fase 2 ya los hizo | **[DECISIÓN PENDIENTE]** Enmendar la fila de la fase 3 a «Escenarios de caída, varias instancias, reproceso del DLT», anotándolo en el registro de enmiendas |
+## Decisiones del autor (2026-10-22)
+| Id | Decisión | Elegida (propuesta aceptada) |
+|----|----------|------------------------------|
+| D1 | Reintentos con la base de datos caída | Espera creciente de 1 s a 30 s (1, 2, 4, 8, 16, 30, 30…), **sin límite**: un evento correcto nunca va al DLT por una caída de la base de datos. Un `WARN` al empezar a fallar y otro al recuperarse |
+| D2 | Reproceso del DLT | Endpoint del `processor`, `POST /admin/dead-letters/replay`, que vuelve a publicar en el topic principal lo que hay en el DLT. Sin autenticación por ahora (uso local); la seguridad, cuando haya despliegue |
+| D3 | La API con PostgreSQL caído | Como está: sin catálogo no sabe si la zona existe, así que responde **503** con `ProblemDetail` y el sensor reintenta. Sin caché del catálogo |
+| D4 | Fila de la fase 3 en la constitución | Enmendada a «Escenarios de caída, varias instancias, reproceso del DLT» (registro de enmiendas, 2026-10-22) |

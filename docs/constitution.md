@@ -32,7 +32,7 @@ más que uno grande a medias.
 |------|----------|----------|
 | 1 | MVP síncrono: simulador → API → PostgreSQL, con alertas por umbrales | Spring Boot, Flyway, Docker Compose |
 | 2 | Procesamiento asíncrono | Kafka, servicio `processor`, DLT básico |
-| 3 | Fiabilidad | Idempotencia en el consumidor, DLT, escenarios de caída |
+| 3 | Fiabilidad | Escenarios de caída, varias instancias, reproceso del DLT |
 | 4 | Observabilidad y presentación | Métricas, trazas, dashboard, documentación |
 
 ### 4. El tiempo del evento manda
@@ -86,3 +86,5 @@ el motivo en el registro de abajo. Las decisiones técnicas concretas van en ADR
   tecnología nueva; la tabla de fases no las situaba en ninguna.
 - 2026-10-21 — Fase 2 incluye un DLT básico (spec 003). Motivo: `CLAUDE.md` exige que
   ningún mensaje se descarte; los escenarios de caída siguen en la fase 3.
+- 2026-10-22 — Fase 3 pasa a «Escenarios de caída, varias instancias, reproceso del DLT»
+  (spec 004, D4). Motivo: la fase 2 ya hizo la idempotencia en el consumidor y el DLT.
