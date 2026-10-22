@@ -5,8 +5,8 @@
   al final de cada `tasks.md`.
 - Spec activa: `specs/004-fiabilidad-ante-caidas/` (fase 3): D1–D4 resueltas (BD caída:
   reintento sin límite 1→30 s; replay del DLT por endpoint; API 503 sin BD; constitución
-  enmendada). Spec aprobada; `plan.md` en borrador (sin módulos, deps ni migraciones,
-  salvo `spring-tx`/`spring-jdbc` en `shared` si se acepta el punto 8.1).
+  enmendada). Spec y plan aprobados (`DatabaseUnavailable` en `shared`, con spring-tx/jdbc).
+  `tasks.md` pendiente de aprobación.
 - Código: monorepo Maven; módulos `shared/` (migraciones, enums, `SensorEventMessage` v1,
   `Topics`), `api/` (valida, 422, publica; consultas), `processor/` (8081, `EventProcessor`:
   reglas de 001 y 002) y `simulator/`.
@@ -29,10 +29,9 @@
 - Logs con `eventId`: duplicado → DEBUG (esperables con at-least-once); zona
   desconocida, EXIT en 0 y 400 → WARN.
 - Instantes de la API en UTC con milisegundos (`@JsonFormat`); la BD guarda microsegundos.
-- Pruebas de mutación hechas en 001 y 002 (sin `FOR UPDATE`, sin `@Transactional`, sin
-  histéresis): todas fallaron como debían; detalle al final de cada `tasks.md`.
-- Simulador: un hilo por zona con envío síncrono (orden por zona); P(ENTRY) 0,9→0,3
-  para que al final quede gente y CA10 compare números reales; comprueba CA10 solo.
+- Pruebas de mutación: hechas en 001–003; detalle en cada `tasks.md`.
+- Simulador: un hilo por zona (orden por zona); P(ENTRY) 0,9→0,3; espera hasta 30 s a
+  que la API cuadre y comprueba CA10 solo.
 - Migraciones (en `shared`): V1 esquema, V2 4 zonas, V3 alertas, V4 `PALCO`, V5
   `processed_at` (filas antiguas = `received_at`). No editarlas: cambios en V6+.
 

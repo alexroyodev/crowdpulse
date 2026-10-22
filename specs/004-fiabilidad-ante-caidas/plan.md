@@ -1,13 +1,13 @@
 # Plan 004 — Fiabilidad ante caídas
 
-- **Estado:** Borrador, pendiente de aprobación
+- **Estado:** Aprobado (2026-10-22); §8.1: `DatabaseUnavailable` en `shared`
 - **Spec:** [`spec.md`](spec.md)
 - **Fase:** 3
 - **Fecha:** 2026-10-22
 
-Cómo se implementa la spec 004 sobre lo que dejó la 003. **No hay módulos nuevos,
-dependencias nuevas, cambios en `compose.yaml` ni migraciones**, así que no hace falta
-ningún permiso. Cada decisión no obvia lleva la alternativa descartada.
+Cómo se implementa la spec 004 sobre lo que dejó la 003. No hay módulos nuevos, cambios
+en `compose.yaml` ni migraciones. La única dependencia nueva es `spring-tx`/`spring-jdbc`
+en `shared` (§8.1, aprobada). Cada decisión no obvia lleva la alternativa descartada.
 
 ---
 
@@ -170,8 +170,8 @@ localhost:8081/admin/dead-letters/replay`.
    Propongo ponerla en `shared`: son dos usos reales (principio 1). La contrapartida es
    que `shared` pasaría a depender de `spring-tx`/`spring-jdbc` para conocer esas
    excepciones; las dos aplicaciones ya las traen, pero `shared` dejaría de ser un jar
-   casi vacío. La alternativa es una copia de unas 20 líneas en cada aplicación. **Si no
-   dices nada, la pongo en `shared`.**
+   casi vacío. La alternativa es una copia de unas 20 líneas en cada aplicación.
+   **Decidido por el autor (2026-10-22): en `shared`.**
 2. **Una caída de la base de datos para todo el `processor`,** no solo la zona afectada:
    hay un único hilo consumidor. Es intencionado (sin base de datos no se puede aplicar
    nada), pero conviene saberlo.
