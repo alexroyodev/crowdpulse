@@ -1,6 +1,6 @@
 # Spec 004 — Fiabilidad ante caídas
 
-- **Estado:** Borrador: decisiones D1–D4 resueltas (2026-10-22), pendiente de aprobación
+- **Estado:** Aprobada (2026-10-22); decisiones D1–D4 resueltas el mismo día
 - **Fase:** 3
 - **Fecha:** 2026-10-22
 - **Depende de:** [spec 003](../003-procesamiento-asincrono/spec.md)
