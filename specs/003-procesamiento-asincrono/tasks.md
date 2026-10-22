@@ -96,7 +96,7 @@ tests, ninguna aserción se borra ni se relaja: cambia de sitio (plan §7).
     `ENTRY` y `GET /zones` lo refleja; el simulador corto (`--rate=10 --duration=5s`)
     vuelve a acabar en OK (puede necesitar T10 para no comprobar antes de tiempo).
 
-- [ ] **T08 — Reintentos y DLT** (plan §5.3; CA3b)
+- [x] **T08 — Reintentos y DLT** (plan §5.3; CA3b)
   - `KafkaConfig`: `DefaultErrorHandler` (3 intentos, 1 s), excepciones no reintentables,
     `loggingRecoverer` (`ERROR` con `eventId`), `DeadLetterPublishingRecoverer` al topic
     `.dlt` (1 partición, `NewTopic`).
@@ -104,6 +104,9 @@ tests, ninguna aserción se borra ni se relaja: cambia de sitio (plan §7).
     primera con log `ERROR`; el siguiente de la misma zona se procesa; un fallo transitorio
     se reintenta y no llega al DLT.
   - **Mutación:** sin el recoverer → falla; restaurar.
+  - Hecho así (2026-10-22): la prueba manual mostró que el grupo real era el `id` del listener
+    (`sensor-events`), no `crowdpulse-processor`: `idIsGroup = false`, y `DeadLetterIT` lo
+    comprueba con la cabecera del DLT. El log ERROR lleva `cause` (la causa más interna).
   - **Verificación:** `./mvnw verify`; manual: publicar un JSON roto con
     `kafka-console-producer.sh` y verlo en el DLT y en el log.
 

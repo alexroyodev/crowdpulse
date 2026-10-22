@@ -38,7 +38,9 @@ class SensorEventListener {
 		this.validator = validator;
 	}
 
-	@KafkaListener(id = ID, topics = Topics.SENSOR_EVENTS)
+	// idIsGroup = false: otherwise Spring Kafka uses the id as consumer group, overriding
+	// spring.kafka.consumer.group-id (crowdpulse-processor).
+	@KafkaListener(id = ID, idIsGroup = false, topics = Topics.SENSOR_EVENTS)
 	void onMessage(ConsumerRecord<String, String> record) {
 		checkVersion(record.headers().lastHeader(Topics.MESSAGE_VERSION_HEADER));
 		// Broken JSON throws a JacksonException here: the message cannot be processed, ever.
