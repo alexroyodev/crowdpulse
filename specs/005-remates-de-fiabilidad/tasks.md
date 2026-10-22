@@ -30,12 +30,15 @@ actualizado. Al terminar se marca `[x]`.
   - **Verificación:** `verify`; manual: `curl -X POST '127.0.0.1:8081/admin/dead-letters/replay'`
     con los mensajes rotos que ya hay en el DLT de compose → `skipped` > 0.
 
-- [ ] **T03 — El simulador reintenta los 503** (plan §3; CA4)
+- [x] **T03 — El simulador reintenta los 503** (plan §3; CA4)
   - `ApiClient` (`Retry-After`), `ZoneRunner` (reintento con reloj y pausa inyectados),
     `ZoneResult` y `SimulationReport` (línea de reintentos).
   - `ZoneRunnerTest`: los tres casos del plan.
   - **Mutación:** sin reintentos → falla; restaurar.
   - **Verificación:** `./mvnw -pl simulator verify`.
+  - Hecho así (2026-10-22): `Pause` pasa a ser una interfaz propia (la usan `SettlingWait` y
+    `ZoneRunner`); un cuarto test cubre la lectura de `Retry-After` (segundos, 1 s si falta o
+    es una fecha). Sin reintentos fallan los 3 tests de reintento.
 
 - [ ] **T04 — Demo, documentación y cierre** (CA5, CA6)
   - Demo del plan §4.

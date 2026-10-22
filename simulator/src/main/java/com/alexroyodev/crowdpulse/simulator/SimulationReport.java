@@ -31,6 +31,14 @@ record SimulationReport(List<ZoneResult> zones, Map<String, Integer> before, Map
 		return zones.stream().mapToInt(ZoneResult::duplicates).sum();
 	}
 
+	int retries() {
+		return zones.stream().mapToInt(ZoneResult::retries).sum();
+	}
+
+	int retriedEvents() {
+		return zones.stream().mapToInt(ZoneResult::retriedEvents).sum();
+	}
+
 	Map<Integer, Integer> statuses() {
 		Map<Integer, Integer> total = new TreeMap<>();
 		zones.forEach(zone -> zone.statuses().forEach((status, n) -> total.merge(status, n, Integer::sum)));
@@ -65,6 +73,7 @@ record SimulationReport(List<ZoneResult> zones, Map<String, Integer> before, Map
 		statuses().forEach((status, n) -> out.append(' ')
 				.append(status == ApiClient.CONNECTION_ERROR ? "sin conexión" : status).append('=').append(n));
 		out.append(System.lineSeparator());
+		out.append(String.format(Locale.ROOT, "  Reintentos por 503: %d (%d eventos)%n", retries(), retriedEvents()));
 		out.append(String.format(Locale.ROOT, changesMatch()
 				? "  La API cuadró %.1f s después del último envío%n"
 				: "  La API no cuadró tras esperar %.1f s%n", waited.toMillis() / 1000.0));

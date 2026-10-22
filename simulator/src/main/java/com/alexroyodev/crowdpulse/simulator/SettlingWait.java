@@ -22,10 +22,6 @@ final class SettlingWait {
 		Map<String, Integer> read() throws IOException, InterruptedException;
 	}
 
-	interface Pause {
-		void sleep(Duration duration) throws InterruptedException;
-	}
-
 	/**
 	 * @param after the last occupancies read
 	 * @param waited from the first read to the last one

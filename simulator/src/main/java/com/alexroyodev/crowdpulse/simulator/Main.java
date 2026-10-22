@@ -13,8 +13,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
- * Entry point: one sender thread per zone, a wait until the API shows the changes, then the report. Exit code 0 when the CA10 check
- * passes, 1 when it does not or the API is unreachable, 2 for invalid options.
+ * Entry point: one sender thread per zone, a wait until the API shows the changes, then the
+ * report. Exit code 0 when the CA10 check passes, 1 when it does not or the API is unreachable, 2
+ * for invalid options.
  */
 public final class Main {
 

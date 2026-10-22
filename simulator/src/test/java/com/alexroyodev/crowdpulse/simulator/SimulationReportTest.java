@@ -12,8 +12,8 @@ import org.junit.jupiter.api.Test;
 
 class SimulationReportTest {
 
-	private static final ZoneResult NORTE = new ZoneResult("NORTE", 95, 5, Map.of(202, 100), 40);
-	private static final ZoneResult SUR = new ZoneResult("SUR", 100, 0, Map.of(202, 100), 12);
+	private static final ZoneResult NORTE = new ZoneResult("NORTE", 95, 5, Map.of(202, 100), 40, 0, 0);
+	private static final ZoneResult SUR = new ZoneResult("SUR", 100, 0, Map.of(202, 100), 12, 0, 0);
 
 	@Test
 	void okWhenEveryResponseIsAcceptedAndChangesMatch() {
@@ -26,6 +26,7 @@ class SimulationReportTest {
 		assertTrue(report.format().contains("NORTE    10 -> 50; +40 / +40 OK"), report.format());
 		assertTrue(report.format().contains("tasa real 100.0 ev/s"), report.format());
 		assertTrue(report.format().contains("La API cuadró 1.2 s después del último envío"), report.format());
+		assertTrue(report.format().contains("Reintentos por 503: 0 (0 eventos)"), report.format());
 		assertTrue(report.format().endsWith("Resultado: OK" + System.lineSeparator()));
 	}
 
@@ -41,7 +42,7 @@ class SimulationReportTest {
 
 	@Test
 	void notOkWhenAnyResponseIsNot202() {
-		ZoneResult withErrors = new ZoneResult("NORTE", 100, 0, Map.of(202, 99, 500, 1), 40);
+		ZoneResult withErrors = new ZoneResult("NORTE", 100, 0, Map.of(202, 99, 500, 1), 40, 0, 0);
 		SimulationReport report = new SimulationReport(List.of(withErrors), Map.of("NORTE", 0), Map.of("NORTE", 40),
 				Duration.ofSeconds(1), Duration.ofSeconds(30));
 
@@ -51,7 +52,7 @@ class SimulationReportTest {
 
 	@Test
 	void notOkWhenTheZoneDoesNotExistInTheApi() {
-		ZoneResult unknown = new ZoneResult("FOO", 10, 0, Map.of(422, 10), 3);
+		ZoneResult unknown = new ZoneResult("FOO", 10, 0, Map.of(422, 10), 3, 0, 0);
 		SimulationReport report = new SimulationReport(List.of(unknown), Map.of(), Map.of(), Duration.ofSeconds(1),
 				Duration.ofSeconds(30));
 

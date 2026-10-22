@@ -4,7 +4,7 @@
 - Fase 3 cumplida (2026-10-22). Specs 001–004 terminadas; verificación de los CA al final
   de cada `tasks.md`.
 - Spec activa: `specs/005-remates-de-fiabilidad/` (fase 3): spec, plan y tareas aprobados;
-  hecho: T01–T02; siguiente: T03 (processor en 127.0.0.1, reproceso que salta fallos de contenido, simulador
+  hecho: T01–T03; siguiente: T04 (cierre) (processor en 127.0.0.1, reproceso que salta fallos de contenido, simulador
   que reintenta 503).
 - Código: monorepo Maven; módulos `shared/` (migraciones, enums, `SensorEventMessage` v1,
   `Topics`), `api/` (valida, 422, publica; consultas), `processor/` (8081, `EventProcessor`:

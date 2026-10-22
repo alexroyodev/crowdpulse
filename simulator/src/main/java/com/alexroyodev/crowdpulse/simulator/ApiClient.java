@@ -30,22 +30,49 @@ class ApiClient {
 		this.http = HttpClient.newBuilder().connectTimeout(TIMEOUT).build();
 	}
 
-	/** Sends one event; returns the HTTP status, or CONNECTION_ERROR. */
-	int send(SimulatedEvent event) {
+	/** When the API asks for no specific wait (spec 005: as a sensor, honour Retry-After). */
+	static final Duration DEFAULT_RETRY_AFTER = Duration.ofSeconds(1);
+
+	/**
+	 * @param status the HTTP status, or CONNECTION_ERROR
+	 * @param retryAfter how long the API asks to wait before retrying (Retry-After, in seconds)
+	 */
+	record Response(int status, Duration retryAfter) {
+
+		static Response of(int status) {
+			return new Response(status, DEFAULT_RETRY_AFTER);
+		}
+
+	}
+
+	/** Sends one event once. */
+	Response send(SimulatedEvent event) {
 		HttpRequest request = HttpRequest.newBuilder(baseUrl.resolve("/api/v1/events"))
 				.timeout(TIMEOUT)
 				.header("Content-Type", "application/json")
 				.POST(HttpRequest.BodyPublishers.ofString(event.toJson()))
 				.build();
 		try {
-			return http.send(request, HttpResponse.BodyHandlers.discarding()).statusCode();
+			HttpResponse<Void> response = http.send(request, HttpResponse.BodyHandlers.discarding());
+			return new Response(response.statusCode(), retryAfter(response.headers().firstValue("Retry-After").orElse(null)));
 		}
 		catch (IOException ex) {
-			return CONNECTION_ERROR;
+			return Response.of(CONNECTION_ERROR);
 		}
 		catch (InterruptedException ex) {
 			Thread.currentThread().interrupt();
-			return CONNECTION_ERROR;
+			return Response.of(CONNECTION_ERROR);
+		}
+	}
+
+	/** Retry-After in seconds; 1 s if missing or not a non-negative number. */
+	static Duration retryAfter(String header) {
+		try {
+			long seconds = Long.parseLong(header == null ? "" : header.trim());
+			return seconds >= 0 ? Duration.ofSeconds(seconds) : DEFAULT_RETRY_AFTER;
+		}
+		catch (NumberFormatException ex) {
+			return DEFAULT_RETRY_AFTER;
 		}
 	}
 
