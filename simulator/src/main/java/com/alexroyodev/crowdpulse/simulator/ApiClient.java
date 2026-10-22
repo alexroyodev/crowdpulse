@@ -17,7 +17,9 @@ class ApiClient {
 	/** Status reported when the request did not get any HTTP response. */
 	static final int CONNECTION_ERROR = -1;
 
-	private static final Duration TIMEOUT = Duration.ofSeconds(5);
+	// Longer than the API takes to answer 503 in the worst case (about 6 s with the database down,
+	// spec 005): a timeout is not retried, so with less the event would be lost instead of resent.
+	private static final Duration TIMEOUT = Duration.ofSeconds(10);
 
 	// Reads zoneId and occupancy from GET /api/v1/zones, whose format is fixed by spec 001.
 	private static final Pattern ZONE = Pattern.compile("\"zoneId\":\"([^\"]+)\"[^}]*?\"occupancy\":(\\d+)");
