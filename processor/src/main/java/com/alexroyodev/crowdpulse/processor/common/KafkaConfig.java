@@ -17,12 +17,11 @@ import org.springframework.util.backoff.BackOff;
 import org.springframework.util.backoff.ExponentialBackOff;
 import org.springframework.util.backoff.FixedBackOff;
 
+import com.alexroyodev.crowdpulse.processor.event.ContentFailure;
 import com.alexroyodev.crowdpulse.processor.event.UnknownZoneException;
-import com.alexroyodev.crowdpulse.processor.event.UnsupportedMessageVersionException;
 import com.alexroyodev.crowdpulse.shared.DatabaseUnavailable;
 import com.alexroyodev.crowdpulse.shared.Topics;
 
-import jakarta.validation.ConstraintViolationException;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
@@ -75,8 +74,8 @@ class KafkaConfig {
 		// 3 attempts in total, 1 s apart, for failures that may go away (e.g. the database for a moment).
 		DefaultErrorHandler handler = new DefaultErrorHandler(loggingRecoverer, new FixedBackOff(1000L, 2L));
 		// Failures that retrying cannot fix go to the dead-letter topic at the first attempt.
-		handler.addNotRetryableExceptions(JacksonException.class, ConstraintViolationException.class,
-				UnsupportedMessageVersionException.class, UnknownZoneException.class);
+		ContentFailure.TYPES.forEach(handler::addNotRetryableExceptions);
+		handler.addNotRetryableExceptions(UnknownZoneException.class);
 		// Spec 004 (D1): if the database is not available the message is not to blame. Retry it
 		// without limit, so the partition waits and nothing goes to the dead-letter topic.
 		handler.setBackOffFunction((record, ex) -> DatabaseUnavailable.isCause(ex) ? untilTheDatabaseIsBack() : null);

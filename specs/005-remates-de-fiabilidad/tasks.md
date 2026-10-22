@@ -17,11 +17,16 @@ actualizado. Al terminar se marca `[x]`.
   - **Mutación:** sin `server.address` → falla; restaurar.
   - **Verificación:** `verify`; manual: `curl` a `127.0.0.1:8081` y a la IP del equipo.
 
-- [ ] **T02 — El reproceso se salta los fallos de contenido** (plan §2; CA2, CA3)
+- [x] **T02 — El reproceso se salta los fallos de contenido** (plan §2; CA2, CA3)
   - `ContentFailure` y su test unitario; `DeadLetterReplayer.replay(all)`;
     `?all=true` en el controlador; respuesta `{"replayed", "skipped"}`.
   - `DeadLetterReplayIT`: CA2 y CA3; los casos existentes se adaptan a la respuesta nueva.
   - **Mutación:** `isContentFailure` siempre `false` → CA2 falla; restaurar.
+  - Hecho así (2026-10-22): `ContentFailure` vive en `event` y su lista (`TYPES`) la usa
+    también el gestor de errores, para que «al DLT al primer intento» y «no se reprocesa»
+    no puedan divergir. CA2 y CA3 están en `DeadLetterReplaySkipIT`, con sus propios
+    contenedores (`?all=true` relee todo el DLT). Manual en compose: `{"replayed":0,"skipped":2}`
+    y después `{"replayed":0,"skipped":0}`: los mensajes rotos ya no rebotan.
   - **Verificación:** `verify`; manual: `curl -X POST '127.0.0.1:8081/admin/dead-letters/replay'`
     con los mensajes rotos que ya hay en el DLT de compose → `skipped` > 0.
 

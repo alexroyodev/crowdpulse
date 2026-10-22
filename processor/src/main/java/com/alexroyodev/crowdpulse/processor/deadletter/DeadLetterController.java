@@ -9,6 +9,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -21,18 +22,17 @@ class DeadLetterController {
 
 	private static final Logger log = LoggerFactory.getLogger(DeadLetterController.class);
 
-	record ReplayResult(int replayed) {
-	}
-
 	private final DeadLetterReplayer replayer;
 
 	DeadLetterController(DeadLetterReplayer replayer) {
 		this.replayer = replayer;
 	}
 
+	/** {@code ?all=true} replays the whole DLT from the beginning, content failures included (spec 005). */
 	@PostMapping("/replay")
-	ReplayResult replay() throws ExecutionException, InterruptedException {
-		return new ReplayResult(replayer.replay());
+	DeadLetterReplayer.ReplayResult replay(@RequestParam(defaultValue = "false") boolean all)
+			throws ExecutionException, InterruptedException {
+		return replayer.replay(all);
 	}
 
 	/** Kafka did not answer: nothing was committed, so calling again replays from the same point. */

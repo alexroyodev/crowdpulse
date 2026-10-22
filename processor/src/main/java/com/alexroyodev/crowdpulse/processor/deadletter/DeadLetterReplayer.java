@@ -1,5 +1,6 @@
 package com.alexroyodev.crowdpulse.processor.deadletter;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
@@ -19,8 +20,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.stereotype.Service;
 
+import com.alexroyodev.crowdpulse.processor.event.ContentFailure;
 import com.alexroyodev.crowdpulse.shared.Topics;
 
 /**
@@ -28,6 +31,8 @@ import com.alexroyodev.crowdpulse.shared.Topics;
  * cause has been fixed. It reads the DLT with its own consumer group, so each message is replayed
  * once: a second call replays only what arrived since. Offsets are committed after republishing,
  * as the processor does; a message republished twice is a harmless duplicate (rule 5).
+ * Spec 005: failures in the content of a message are skipped, since no fix of the environment
+ * helps them, unless {@code all}, which replays the whole DLT from the beginning.
  */
 @Service
 public class DeadLetterReplayer {
@@ -49,12 +54,16 @@ public class DeadLetterReplayer {
 		this.kafka = kafka;
 	}
 
+	/** @param skipped content failures left in the DLT (always 0 when replaying all) */
+	public record ReplayResult(int replayed, int skipped) {
+	}
+
 	/**
-	 * Replays what is in the DLT now, from where the previous replay stopped.
-	 *
-	 * @return how many messages were put back on the events topic
+	 * Replays what is in the DLT now: from where the previous replay stopped, skipping content
+	 * failures; or, with {@code all}, everything from the beginning. Skipped messages stay in the
+	 * DLT, but the group moves past them (nothing is ever deleted).
 	 */
-	public synchronized int replay() throws ExecutionException, InterruptedException {
+	public synchronized ReplayResult replay(boolean all) throws ExecutionException, InterruptedException {
 		// The Kafka client commits on its own by default (only listener containers turn that off):
 		// here offsets must be committed by hand, after republishing.
 		Properties manualCommit = new Properties();
@@ -66,10 +75,14 @@ public class DeadLetterReplayer {
 			// Assigned, not subscribed: no group membership. Without a committed offset it starts at
 			// the beginning (auto-offset-reset: earliest).
 			consumer.assign(partitions);
+			if (all) {
+				consumer.seekToBeginning(partitions);
+			}
 			Map<TopicPartition, Long> end = consumer.endOffsets(partitions);
 
 			Map<TopicPartition, OffsetAndMetadata> replayedUpTo = new HashMap<>();
 			int replayed = 0;
+			int skipped = 0;
 			long deadline = System.nanoTime() + MAX_DURATION.toNanos();
 			while (partitions.stream().anyMatch(partition -> consumer.position(partition) < end.get(partition))) {
 				if (System.nanoTime() > deadline) {
@@ -78,8 +91,13 @@ public class DeadLetterReplayer {
 				for (ConsumerRecord<String, String> record : consumer.poll(Duration.ofMillis(200))) {
 					TopicPartition partition = new TopicPartition(record.topic(), record.partition());
 					if (record.offset() < end.get(partition)) {
-						republish(record);
-						replayed++;
+						if (!all && ContentFailure.isContentFailure(causeOf(record))) {
+							skipped++;
+						}
+						else {
+							republish(record);
+							replayed++;
+						}
 						replayedUpTo.put(partition, new OffsetAndMetadata(record.offset() + 1));
 					}
 				}
@@ -87,9 +105,19 @@ public class DeadLetterReplayer {
 			if (!replayedUpTo.isEmpty()) {
 				consumer.commitSync(replayedUpTo);
 			}
-			log.atWarn().setMessage("Dead-letter topic replayed").addKeyValue("replayed", replayed).log();
-			return replayed;
+			log.atWarn().setMessage("Dead-letter topic replayed")
+					.addKeyValue("replayed", replayed)
+					.addKeyValue("skipped", skipped)
+					.addKeyValue("all", all)
+					.log();
+			return new ReplayResult(replayed, skipped);
 		}
+	}
+
+	/** The class of the failure's cause, as Spring Kafka recorded it when dead-lettering. */
+	private static String causeOf(ConsumerRecord<String, String> record) {
+		Header cause = record.headers().lastHeader(KafkaHeaders.DLT_EXCEPTION_CAUSE_FQCN);
+		return cause == null ? null : new String(cause.value(), StandardCharsets.UTF_8);
 	}
 
 	/** Same key, value and headers as the original event; without the dead-letter headers. */

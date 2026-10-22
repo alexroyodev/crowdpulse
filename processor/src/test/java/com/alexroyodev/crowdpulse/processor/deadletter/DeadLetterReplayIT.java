@@ -124,7 +124,7 @@ class DeadLetterReplayIT {
 		jdbc.sql("INSERT INTO zone_occupancy (zone_id) VALUES (:zoneId)").param("zoneId", NEW_ZONE).update();
 		events.mark();
 
-		assertThat(replay()).isEqualTo("{\"replayed\":1}");
+		assertThat(replay()).isEqualTo("{\"replayed\":1,\"skipped\":0}");
 
 		Eventually.await("the replayed event is applied", () -> isStored(message.eventId()));
 		assertThat(occupancyOf(NEW_ZONE)).isEqualTo(1);
@@ -136,7 +136,7 @@ class DeadLetterReplayIT {
 				.isEqualTo(Topics.MESSAGE_VERSION);
 		assertThat(replayed.headers()).extracting(Header::key).noneMatch(key -> key.startsWith("kafka_dlt-"));
 		// Nothing new in the DLT since then, so a second call has nothing to replay.
-		assertThat(replay()).isEqualTo("{\"replayed\":0}");
+		assertThat(replay()).isEqualTo("{\"replayed\":0,\"skipped\":0}");
 	}
 
 	@Test
@@ -147,7 +147,7 @@ class DeadLetterReplayIT {
 		Eventually.await("the event is applied", () -> isStored(message.eventId()));
 		putInTheDeadLetterTopic(message);
 
-		assertThat(replay()).isEqualTo("{\"replayed\":1}");
+		assertThat(replay()).isEqualTo("{\"replayed\":1,\"skipped\":0}");
 		// The redelivered copy is consumed before this later event of the same zone (same partition).
 		SensorEventMessage marker = message("NORTE", ENTRY, clock.instant());
 		topic.publish(marker);
