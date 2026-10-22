@@ -18,30 +18,32 @@ class SimulationReportTest {
 	@Test
 	void okWhenEveryResponseIsAcceptedAndChangesMatch() {
 		SimulationReport report = new SimulationReport(List.of(NORTE, SUR), Map.of("NORTE", 10, "SUR", 0),
-				Map.of("NORTE", 50, "SUR", 12), Duration.ofSeconds(2));
+				Map.of("NORTE", 50, "SUR", 12), Duration.ofSeconds(2), Duration.ofMillis(1_200));
 
 		assertTrue(report.ok());
 		assertEquals(200, report.sent());
 		assertEquals(5, report.duplicates());
 		assertTrue(report.format().contains("NORTE    10 -> 50; +40 / +40 OK"), report.format());
 		assertTrue(report.format().contains("tasa real 100.0 ev/s"), report.format());
+		assertTrue(report.format().contains("La API cuadró 1.2 s después del último envío"), report.format());
 		assertTrue(report.format().endsWith("Resultado: OK" + System.lineSeparator()));
 	}
 
 	@Test
 	void notOkWhenAChangeDoesNotMatch() {
 		SimulationReport report = new SimulationReport(List.of(NORTE), Map.of("NORTE", 0), Map.of("NORTE", 39),
-				Duration.ofSeconds(1));
+				Duration.ofSeconds(1), Duration.ofSeconds(30));
 
 		assertFalse(report.ok());
 		assertTrue(report.format().contains("NO COINCIDE"));
+		assertTrue(report.format().contains("La API no cuadró tras esperar 30.0 s"), report.format());
 	}
 
 	@Test
 	void notOkWhenAnyResponseIsNot202() {
 		ZoneResult withErrors = new ZoneResult("NORTE", 100, 0, Map.of(202, 99, 500, 1), 40);
 		SimulationReport report = new SimulationReport(List.of(withErrors), Map.of("NORTE", 0), Map.of("NORTE", 40),
-				Duration.ofSeconds(1));
+				Duration.ofSeconds(1), Duration.ofSeconds(30));
 
 		assertFalse(report.ok());
 		assertTrue(report.format().contains("500=1"));
@@ -50,7 +52,8 @@ class SimulationReportTest {
 	@Test
 	void notOkWhenTheZoneDoesNotExistInTheApi() {
 		ZoneResult unknown = new ZoneResult("FOO", 10, 0, Map.of(422, 10), 3);
-		SimulationReport report = new SimulationReport(List.of(unknown), Map.of(), Map.of(), Duration.ofSeconds(1));
+		SimulationReport report = new SimulationReport(List.of(unknown), Map.of(), Map.of(), Duration.ofSeconds(1),
+				Duration.ofSeconds(30));
 
 		assertFalse(report.ok());
 		assertTrue(report.format().contains("zona no encontrada en la API"));

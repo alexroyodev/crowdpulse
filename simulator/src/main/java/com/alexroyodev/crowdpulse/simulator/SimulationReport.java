@@ -10,9 +10,12 @@ import java.util.TreeMap;
  * Summary printed at the end, with the CA10 check: every response was 202 and, for every zone,
  * the change in the API's occupancy equals unique entries minus unique exits sent. Comparing the
  * change (after - before) instead of the absolute value lets the check work on a non-empty database.
+ *
+ * @param waited how long the API took to show the changes after the last send (spec 003, D4), or
+ *        how long the simulator waited before giving up
  */
 record SimulationReport(List<ZoneResult> zones, Map<String, Integer> before, Map<String, Integer> after,
-		Duration elapsed) {
+		Duration elapsed, Duration waited) {
 
 	SimulationReport {
 		zones = List.copyOf(zones);
@@ -44,8 +47,12 @@ record SimulationReport(List<ZoneResult> zones, Map<String, Integer> before, Map
 		return b != null && a != null && a - b == zone.expectedDelta();
 	}
 
+	boolean changesMatch() {
+		return zones.stream().allMatch(this::matches);
+	}
+
 	boolean ok() {
-		return allAccepted() && zones.stream().allMatch(this::matches);
+		return allAccepted() && changesMatch();
 	}
 
 	String format() {
@@ -58,6 +65,9 @@ record SimulationReport(List<ZoneResult> zones, Map<String, Integer> before, Map
 		statuses().forEach((status, n) -> out.append(' ')
 				.append(status == ApiClient.CONNECTION_ERROR ? "sin conexión" : status).append('=').append(n));
 		out.append(System.lineSeparator());
+		out.append(String.format(Locale.ROOT, changesMatch()
+				? "  La API cuadró %.1f s después del último envío%n"
+				: "  La API no cuadró tras esperar %.1f s%n", waited.toMillis() / 1000.0));
 		out.append("Ocupación en la API (antes -> después; cambio / esperado):").append(System.lineSeparator());
 		for (ZoneResult zone : zones) {
 			Integer b = before.get(zone.zoneId());

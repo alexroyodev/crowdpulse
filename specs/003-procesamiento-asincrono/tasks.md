@@ -128,7 +128,7 @@ tests, ninguna aserción se borra ni se relaja: cambia de sitio (plan §7).
 
 ## Bloque E — Simulador y cierre
 
-- [ ] **T10 — El simulador espera a que cuadre** (plan §8; D4)
+- [x] **T10 — El simulador espera a que cuadre** (plan §8; D4)
   - Consulta cada 500 ms hasta que cuadra o pasan 30 s; línea nueva en el informe.
   - Tests unitarios con la consulta y el reloj inyectados: cuadra a la primera, cuadra
     tarde, no cuadra en 30 s.

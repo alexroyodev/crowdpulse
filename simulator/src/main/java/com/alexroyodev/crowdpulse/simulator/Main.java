@@ -13,7 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
- * Entry point: one sender thread per zone, then the report. Exit code 0 when the CA10 check
+ * Entry point: one sender thread per zone, a wait until the API shows the changes, then the report. Exit code 0 when the CA10 check
  * passes, 1 when it does not or the API is unreachable, 2 for invalid options.
  */
 public final class Main {
@@ -54,9 +54,11 @@ public final class Main {
 		List<ZoneResult> results = runZones(config, api);
 		Duration elapsed = Duration.ofNanos(System.nanoTime() - start);
 
-		Map<String, Integer> after;
+		// Spec 003 (D4): the API processes asynchronously, so wait until it shows the expected changes.
+		SettlingWait.Result settling;
 		try {
-			after = api.occupancies();
+			settling = new SettlingWait(api::occupancies, Clock.systemUTC(), duration -> Thread.sleep(duration))
+					.await(after -> new SimulationReport(results, before, after, elapsed, Duration.ZERO).changesMatch());
 		}
 		catch (IOException ex) {
 			System.err.println("Error: no se puede consultar la API al terminar (" + ex.getMessage() + ")");
@@ -64,7 +66,7 @@ public final class Main {
 			return;
 		}
 
-		SimulationReport report = new SimulationReport(results, before, after, elapsed);
+		SimulationReport report = new SimulationReport(results, before, settling.after(), elapsed, settling.waited());
 		System.out.print(report.format());
 		System.exit(report.ok() ? 0 : 1);
 	}
