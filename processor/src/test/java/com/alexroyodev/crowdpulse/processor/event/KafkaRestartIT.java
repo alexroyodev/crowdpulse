@@ -45,7 +45,10 @@ import tools.jackson.databind.json.JsonMapper;
  * eventId absorbs (ADR 0004). Those mechanisms were validated by mutation in AtLeastOnceIT.
  */
 @Import(KafkaRestartIT.OwnContainers.class)
-@SpringBootTest(properties = "spring.kafka.listener.auto-startup=false")
+@SpringBootTest(properties = { "spring.kafka.listener.auto-startup=false",
+		// 10 per fetch instead of 500: records already fetched are processed even with Kafka paused
+		// (they only need PostgreSQL), so with big fetches the outage might not stop anything.
+		"spring.kafka.consumer.max-poll-records=10" })
 class KafkaRestartIT {
 
 	// Under session.timeout.ms (45 s): the group is not rebuilt, the consumer just waits.

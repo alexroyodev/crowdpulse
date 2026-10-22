@@ -144,7 +144,10 @@ class ProcessorRestartIT {
 
 		int storedWhenStopped;
 		// The listener starts only once all 1 000 are in the topic, so the stop really is halfway.
-		try (ConfigurableApplicationContext app = startProcessor("--spring.kafka.listener.auto-startup=false")) {
+		// Small fetches: on close the container still finishes what it already fetched, and with 500
+		// per fetch it could finish all 1 000; then the restart would prove nothing.
+		try (ConfigurableApplicationContext app = startProcessor("--spring.kafka.listener.auto-startup=false",
+				"--spring.kafka.consumer.max-poll-records=10")) {
 			TopicPublisher topic = new TopicPublisher(app.getBean(KafkaTemplate.class), app.getBean(JsonMapper.class));
 			messages.forEach(topic::publish);
 			app.getBean(KafkaListenerEndpointRegistry.class).start();
