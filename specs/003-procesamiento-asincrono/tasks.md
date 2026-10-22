@@ -72,7 +72,7 @@ tests, ninguna aserción se borra ni se relaja: cambia de sitio (plan §7).
     (clave, cabecera y JSON); 400 y 422 sin mensaje.
   - **Desde aquí y hasta T07 no hay camino de extremo a extremo** (plan §10.6).
 
-- [ ] **T06 — 503 cuando Kafka no confirma** (CA2, D3)
+- [x] **T06 — 503 cuando Kafka no confirma** (CA2, D3)
   - `KafkaOutageIT` con su propio `KafkaContainer`: 202 → `docker pause` → 503 en ≤ ~3 s
     con `ProblemDetail` → `unpause` → lo que recibió 202 está en el topic y el reintento
     recibe 202.

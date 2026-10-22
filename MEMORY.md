@@ -5,15 +5,14 @@
   final de su `tasks.md`).
 - Spec activa: `specs/003-procesamiento-asincrono/`: spec, plan y tareas aprobados
   (2026-10-22), con permiso para `shared`, `processor`, Kafka, 9092 fijo y V5.
-  Hecho: T01–T05. Siguiente: T06. Kafka `apache/kafka:4.2.2`. Hasta T07 no hay camino de
+  Hecho: T01–T06. Siguiente: T07. Kafka `apache/kafka:4.2.2`. Hasta T07 no hay camino de
   extremo a extremo (la API publica, nadie consume todavía).
 - Código: monorepo Maven; módulos `shared/` (migraciones, enums, `SensorEventMessage` v1,
   `Topics`), `api/` (valida, 422, publica; consultas), `processor/` (8081, `EventProcessor`:
   reglas de 001 y 002) y `simulator/`.
 
 ## Decisiones (y su porqué)
-- Maven y Java 21 LTS; Flyway desde el día 1; sin Lombok: código explícito y
-  versionado, fácil de defender en entrevista.
+- Maven, Java 21, Flyway, sin Lombok: código explícito y fácil de defender.
 - `POST /events` responde 202 desde la fase 1: el contrato no cambia con Kafka.
 - JdbcClient en vez de JPA (ADR 0001); bloqueo pesimista `FOR UPDATE` por zona
   (ADR 0002). Un `EXIT` anómalo sí actualiza `lastEventAt`.
@@ -27,8 +26,7 @@
   locale fijo `es`, también para Bean Validation. Aprobado por el autor.
 - Logs con `eventId`: duplicado → DEBUG (esperables con at-least-once); zona
   desconocida, EXIT en 0 y 400 → WARN.
-- `lastEventAt` siempre en UTC con milisegundos (`@JsonFormat` en `ZoneView`); la BD
-  guarda microsegundos.
+- Instantes de la API en UTC con milisegundos (`@JsonFormat`); la BD guarda microsegundos.
 - Pruebas de mutación hechas en 001 y 002 (sin `FOR UPDATE`, sin `@Transactional`, sin
   histéresis): todas fallaron como debían; detalle al final de cada `tasks.md`.
 - Simulador: un hilo por zona con envío síncrono (orden por zona); P(ENTRY) 0,9→0,3

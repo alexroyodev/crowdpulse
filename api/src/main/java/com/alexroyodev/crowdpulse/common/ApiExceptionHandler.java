@@ -10,6 +10,7 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.core.NestedExceptionUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -151,7 +152,8 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 	ResponseEntity<ProblemDetail> handleEventNotPublished(EventNotPublishedException ex) {
 		log.atWarn().setMessage("Event not published: Kafka did not confirm it")
 				.addKeyValue("eventId", ex.eventId())
-				.addKeyValue("cause", ex.getCause() == null ? null : ex.getCause().toString())
+				// The innermost cause says why (e.g. a timeout); the outer ones only say "failed to send".
+				.addKeyValue("cause", NestedExceptionUtils.getMostSpecificCause(ex).toString())
 				.log();
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE,
 				"No se ha podido registrar el evento; reinténtalo.");
