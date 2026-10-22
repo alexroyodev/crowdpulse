@@ -8,3 +8,11 @@ services:
       - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-crowdpulse}'
     ports:
       - '5432'
+  kafka:
+    # Single-node KRaft broker (no ZooKeeper); same image as the integration tests.
+    image: 'apache/kafka:4.2.2'
+    ports:
+      # Fixed port, unlike postgres: Spring Boot 4.1 has no Docker Compose support for Kafka, so it
+      # cannot discover a random one. localhost:9092 is Spring Boot's default bootstrap server and
+      # what this image advertises.
+      - '9092:9092'

@@ -5,7 +5,7 @@
   final de su `tasks.md`).
 - Spec activa: `specs/003-procesamiento-asincrono/`: spec, plan y tareas aprobados
   (2026-10-22), con permiso para `shared`, `processor`, Kafka, 9092 fijo y V5.
-  Hecho: T01, T02. Siguiente: T03.
+  Hecho: T01–T03. Siguiente: T04+T05 (un commit). Kafka: `apache/kafka:4.2.2`.
 - Código: monorepo Maven; `pom.xml` raíz es el padre; módulos `shared/` (migraciones,
   `EventType`, `AlertLevel`, `Percentages`, `SensorEventMessage` v1, `Topics`), `api/` (Spring Boot 4.1) y `simulator/`.
 

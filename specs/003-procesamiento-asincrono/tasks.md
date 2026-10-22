@@ -33,7 +33,7 @@ tests, ninguna aserción se borra ni se relaja: cambia de sitio (plan §7).
 
 ## Bloque B — El corte: API → Kafka, procesamiento → `processor`
 
-- [ ] **T03 — Kafka en `compose.yaml` y en los tests de la API** (plan §3, §6)
+- [x] **T03 — Kafka en `compose.yaml` y en los tests de la API** (plan §3, §6)
   - Servicio `kafka` (`apache/kafka`, versión fijada, `9092:9092`).
   - Dependencias de Kafka en `api`; `TestcontainersConfiguration` con `KafkaContainer`
     (misma imagen y versión).
