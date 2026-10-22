@@ -1,6 +1,14 @@
 spring:
   application:
     name: crowdpulse-processor
+  datasource:
+    hikari:
+      # Fail in 3 s, not Hikari's default 30 s, when no connection can be had (spec 004): the
+      # processor's backoff and the API's 503 depend on noticing it quickly.
+      connection-timeout: 3000
+      data-source-properties:
+        # Seconds. A database that hangs (instead of refusing) would block a query forever.
+        socketTimeout: 10
   docker:
     compose:
       # compose.yaml lives at the repository root; spring-boot:run uses processor/ as working directory.

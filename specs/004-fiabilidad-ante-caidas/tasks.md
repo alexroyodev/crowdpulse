@@ -19,7 +19,7 @@ Al terminar se marca `[x]`. `DeadLetterIT` debe seguir en verde en todas (CA6).
     `DataIntegrityViolationException`, una `RuntimeException` cualquiera y `null` → `false`.
   - **Verificación:** `./mvnw test`.
 
-- [ ] **T02 — Tiempos de espera de la base de datos** (plan §2.3)
+- [x] **T02 — Tiempos de espera de la base de datos** (plan §2.3)
   - `application.yml` de `api` y `processor`: `hikari.connection-timeout: 3000` y
     `data-source-properties.socketTimeout: 10`.
   - **Verificación:** `./mvnw verify`; los contextos arrancan con la configuración nueva.
