@@ -6,7 +6,10 @@ import static com.alexroyodev.crowdpulse.shared.EventType.EXIT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Clock;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -16,17 +19,23 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import com.alexroyodev.crowdpulse.processor.event.EventProcessor;
 import com.alexroyodev.crowdpulse.shared.EventType;
+import com.alexroyodev.crowdpulse.shared.SensorEventMessage;
+
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Spec 001 CA8 and spec 002 CA10, now for the processor (moved from the API's RestartIT): after a
  * restart the state is the same and processing goes on from it, because PostgreSQL is the source
- * of truth (principle 6). The application is started twice for real, against one database that
+ * of truth (principle 6). Spec 003 CA6: a restart halfway through the topic loses no event and
+ * counts none twice. The application is started twice for real, against one database that
  * outlives both runs; Spring's test context cache is not involved.
  */
 class ProcessorRestartIT {
@@ -121,8 +130,41 @@ class ProcessorRestartIT {
 		assertThat(alerts()).isEqualTo(alertsBefore);
 	}
 
-	private static ConfigurableApplicationContext startProcessor() {
+	@Test
+	void restartHalfwayThroughAThousandEventsLosesNoneAndCountsNoneTwice() {
+		// Spec 003, CA6. NORTE and SUR get 500 events each: ENTRY, ENTRY, EXIT... never below 0.
+		List<SensorEventMessage> messages = new ArrayList<>();
+		Map<String, Integer> expected = new HashMap<>();
+		for (int i = 0; i < 1_000; i++) {
+			String zoneId = i % 2 == 0 ? "NORTE" : "SUR";
+			EventType type = (i / 2) % 3 == 2 ? EXIT : ENTRY;
+			messages.add(message(zoneId, type, Clock.systemUTC().instant()));
+			expected.merge(zoneId, type == ENTRY ? 1 : -1, Integer::sum);
+		}
+
+		int storedWhenStopped;
+		// The listener starts only once all 1 000 are in the topic, so the stop really is halfway.
+		try (ConfigurableApplicationContext app = startProcessor("spring.kafka.listener.auto-startup=false")) {
+			TopicPublisher topic = new TopicPublisher(app.getBean(KafkaTemplate.class), app.getBean(JsonMapper.class));
+			messages.forEach(topic::publish);
+			app.getBean(KafkaListenerEndpointRegistry.class).start();
+			Eventually.await("some events processed", () -> storedEvents() >= 100);
+		}
+		storedWhenStopped = storedEvents();
+
+		try (ConfigurableApplicationContext app = startProcessor()) {
+			Eventually.await("the 1 000 events processed", () -> storedEvents() == 1_000);
+		}
+
+		assertThat(storedWhenStopped).as("stopped halfway").isBetween(100, 999);
+		assertThat(zones()).contains(new ZoneRow("NORTE", expected.get("NORTE"), "NORMAL"),
+				new ZoneRow("SUR", expected.get("SUR"), "NORMAL"));
+		assertThat(jdbc.sql("SELECT count(*) FROM sensor_event WHERE anomaly").query(Integer.class).single()).isZero();
+	}
+
+	private static ConfigurableApplicationContext startProcessor(String... extraProperties) {
 		return new SpringApplicationBuilder(ProcessorApplication.class)
+				.properties(extraProperties)
 				.properties(
 						"server.port=0",
 						"spring.docker.compose.enabled=false",
@@ -135,6 +177,10 @@ class ProcessorRestartIT {
 
 	private static void process(ConfigurableApplicationContext app, String zoneId, EventType type) {
 		app.getBean(EventProcessor.class).process(message(zoneId, type, Clock.systemUTC().instant()));
+	}
+
+	private static int storedEvents() {
+		return jdbc.sql("SELECT count(*) FROM sensor_event").query(Integer.class).single();
 	}
 
 	private static List<ZoneRow> zones() {

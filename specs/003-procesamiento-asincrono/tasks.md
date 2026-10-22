@@ -112,7 +112,7 @@ tests, ninguna aserción se borra ni se relaja: cambia de sitio (plan §7).
 
 ## Bloque D — Garantías de entrega
 
-- [ ] **T09 — At-least-once y reinicio del `processor`** (CA6, CA7)
+- [x] **T09 — At-least-once y reinicio del `processor`** (CA6, CA7)
   - `AtLeastOnceIT`: fallo después del commit → cuenta una vez; fallo antes del commit →
     se reentrega y cuenta.
   - `ProcessorRestartIT`: 1 000 eventos, parar y arrancar el listener a mitad → exacto;
@@ -120,6 +120,11 @@ tests, ninguna aserción se borra ni se relaja: cambia de sitio (plan §7).
   - **Mutaciones:** `ack()` antes de procesar → falla el fallo-antes-del-commit; ignorar
     el resultado de `insertIfAbsent` → falla el fallo-después-del-commit y CA4; restaurar.
   - **Verificación:** `./mvnw verify`, 3 veces seguidas en verde.
+  - Hecho así (2026-10-22): la «caída» es parar y arrancar el contenedor del listener tras un
+    primer intento fallido; un reintento en el mismo consumidor relee el mensaje aunque el
+    offset ya esté confirmado y no probaría nada. La caída «después del commit» se lanza en un
+    `afterCommit`: el espía de Mockito queda dentro del proxy transaccional y una excepción allí
+    deshacía la transacción (lo destapó la mutación). 3 `verify` seguidos en verde (153 tests).
 
 ## Bloque E — Simulador y cierre
 
