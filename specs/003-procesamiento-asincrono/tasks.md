@@ -11,7 +11,7 @@ tests, ninguna aserción se borra ni se relaja: cambia de sitio (plan §7).
 
 ## Bloque A — Módulo `shared`
 
-- [ ] **T01 — Módulo `shared` con las migraciones y los tipos compartidos** (plan §2)
+- [x] **T01 — Módulo `shared` con las migraciones y los tipos compartidos** (plan §2)
   - `shared/pom.xml` (jar, sin Spring Boot) y `<module>shared</module>` en el `pom.xml` raíz,
     antes de `api`.
   - `git mv` de `api/src/main/resources/db/migration` a `shared/src/main/resources/db/migration`.

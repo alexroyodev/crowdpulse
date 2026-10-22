@@ -3,7 +3,7 @@ package com.alexroyodev.crowdpulse.occupancy;
 import java.time.Instant;
 import java.util.Objects;
 
-import com.alexroyodev.crowdpulse.event.EventType;
+import com.alexroyodev.crowdpulse.shared.EventType;
 
 /**
  * Occupancy of one zone: pure domain logic, no Spring and no database.

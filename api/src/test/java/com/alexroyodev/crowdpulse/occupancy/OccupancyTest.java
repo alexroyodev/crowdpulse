@@ -1,7 +1,7 @@
 package com.alexroyodev.crowdpulse.occupancy;
 
-import static com.alexroyodev.crowdpulse.event.EventType.ENTRY;
-import static com.alexroyodev.crowdpulse.event.EventType.EXIT;
+import static com.alexroyodev.crowdpulse.shared.EventType.ENTRY;
+import static com.alexroyodev.crowdpulse.shared.EventType.EXIT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 

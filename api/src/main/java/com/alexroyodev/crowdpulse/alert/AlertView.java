@@ -4,7 +4,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-import com.alexroyodev.crowdpulse.zone.ZoneView;
+import com.alexroyodev.crowdpulse.shared.AlertLevel;
+import com.alexroyodev.crowdpulse.shared.Percentages;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 /** One entry of GET /api/v1/alerts (spec 002). Instants in UTC with milliseconds, like the zones. */
@@ -22,7 +23,7 @@ public record AlertView(
 
 	static AlertView of(Alert alert) {
 		return new AlertView(alert.alertId(), alert.zoneId(), alert.from(), alert.to(), alert.occupancy(),
-				alert.capacity(), ZoneView.percentage(alert.occupancy(), alert.capacity()), alert.eventId(),
+				alert.capacity(), Percentages.of(alert.occupancy(), alert.capacity()), alert.eventId(),
 				alert.occurredAt(), alert.detectedAt());
 	}
 

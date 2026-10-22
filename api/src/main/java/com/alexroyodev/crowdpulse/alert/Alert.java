@@ -3,6 +3,8 @@ package com.alexroyodev.crowdpulse.alert;
 import java.time.Instant;
 import java.util.UUID;
 
+import com.alexroyodev.crowdpulse.shared.AlertLevel;
+
 /**
  * One change of a zone's alert level, as stored in the alert table. Immutable.
  *

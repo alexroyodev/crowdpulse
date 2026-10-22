@@ -10,6 +10,8 @@ import java.util.UUID;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
+import com.alexroyodev.crowdpulse.shared.AlertLevel;
+
 @Repository
 public class AlertRepository {
 

@@ -1,50 +1,16 @@
 package com.alexroyodev.crowdpulse.zone;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 
 import org.junit.jupiter.api.Test;
 
-import com.alexroyodev.crowdpulse.alert.AlertLevel;
+import com.alexroyodev.crowdpulse.shared.AlertLevel;
 
+/** The rounding rules of the percentage are tested in shared PercentagesTest (plan 003, section 2). */
 class ZoneViewTest {
-
-	@Test
-	void roundsToOneDecimalAsInTheSpecExample() {
-		// 12 345 / 20 000 = 61.725 %
-		assertThat(ZoneView.percentage(12_345, 20_000)).isEqualTo(new BigDecimal("61.7"));
-	}
-
-	@Test
-	void emptyZoneIsZeroWithOneDecimal() {
-		assertThat(ZoneView.percentage(0, 20_000)).isEqualTo(new BigDecimal("0.0"));
-	}
-
-	@Test
-	void canExceedOneHundred() {
-		assertThat(ZoneView.percentage(25_000, 20_000)).isEqualTo(new BigDecimal("125.0"));
-	}
-
-	@Test
-	void smallValuesRoundDown() {
-		// 1 / 8 000 = 0.0125 %
-		assertThat(ZoneView.percentage(1, 8_000)).isEqualTo(new BigDecimal("0.0"));
-	}
-
-	@Test
-	void halfRoundsUp() {
-		// 1 / 400 = 0.25 %: HALF_UP gives 0.3 (HALF_EVEN would give 0.2)
-		assertThat(ZoneView.percentage(1, 400)).isEqualTo(new BigDecimal("0.3"));
-	}
-
-	@Test
-	void rejectsNonPositiveCapacity() {
-		assertThatThrownBy(() -> ZoneView.percentage(1, 0))
-				.isInstanceOf(IllegalArgumentException.class);
-	}
 
 	@Test
 	void ofComputesThePercentage() {

@@ -1,12 +1,13 @@
 package com.alexroyodev.crowdpulse.alert;
 
-import static com.alexroyodev.crowdpulse.alert.AlertLevel.CRITICAL;
-import static com.alexroyodev.crowdpulse.alert.AlertLevel.NORMAL;
-import static com.alexroyodev.crowdpulse.alert.AlertLevel.WARNING;
+import static com.alexroyodev.crowdpulse.shared.AlertLevel.CRITICAL;
+import static com.alexroyodev.crowdpulse.shared.AlertLevel.NORMAL;
+import static com.alexroyodev.crowdpulse.shared.AlertLevel.WARNING;
 
 import java.util.Objects;
 
 import com.alexroyodev.crowdpulse.alert.AlertProperties.Threshold;
+import com.alexroyodev.crowdpulse.shared.AlertLevel;
 
 /**
  * Decides a zone's alert level from its occupancy (spec 002, rules 2-5). Pure domain logic:

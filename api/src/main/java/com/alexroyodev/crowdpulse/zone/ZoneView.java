@@ -1,10 +1,10 @@
 package com.alexroyodev.crowdpulse.zone;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.Instant;
 
-import com.alexroyodev.crowdpulse.alert.AlertLevel;
+import com.alexroyodev.crowdpulse.shared.AlertLevel;
+import com.alexroyodev.crowdpulse.shared.Percentages;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
@@ -24,24 +24,10 @@ public record ZoneView(
 		@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "UTC") Instant lastEventAt,
 		AlertLevel alertLevel) {
 
-	private static final BigDecimal ONE_HUNDRED = BigDecimal.valueOf(100);
-
 	public static ZoneView of(String zoneId, String name, int capacity, int occupancy, Instant lastEventAt,
 			AlertLevel alertLevel) {
-		return new ZoneView(zoneId, name, capacity, occupancy, percentage(occupancy, capacity), lastEventAt, alertLevel);
-	}
-
-	/**
-	 * BigDecimal instead of double so that rounding is exact: 61.725 always becomes 61.7,
-	 * with no binary floating-point surprises.
-	 */
-	public static BigDecimal percentage(int occupancy, int capacity) {
-		if (capacity <= 0) {
-			throw new IllegalArgumentException("Capacity must be positive: " + capacity);
-		}
-		return BigDecimal.valueOf(occupancy)
-				.multiply(ONE_HUNDRED)
-				.divide(BigDecimal.valueOf(capacity), 1, RoundingMode.HALF_UP);
+		return new ZoneView(zoneId, name, capacity, occupancy, Percentages.of(occupancy, capacity), lastEventAt,
+				alertLevel);
 	}
 
 }

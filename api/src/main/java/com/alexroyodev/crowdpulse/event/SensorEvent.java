@@ -3,6 +3,8 @@ package com.alexroyodev.crowdpulse.event;
 import java.time.Instant;
 import java.util.UUID;
 
+import com.alexroyodev.crowdpulse.shared.EventType;
+
 /**
  * An accepted event as stored in sensor_event. Immutable: once accepted it is never changed.
  *

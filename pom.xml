@@ -29,6 +29,7 @@
 	</scm>
 
 	<modules>
+		<module>shared</module>
 		<module>api</module>
 		<module>simulator</module>
 	</modules>

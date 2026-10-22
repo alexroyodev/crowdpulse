@@ -1,6 +1,6 @@
 package com.alexroyodev.crowdpulse.occupancy;
 
-import com.alexroyodev.crowdpulse.alert.AlertLevel;
+import com.alexroyodev.crowdpulse.shared.AlertLevel;
 
 /**
  * What EventService needs from a zone while holding its row lock: its occupancy, its capacity

@@ -10,14 +10,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.alexroyodev.crowdpulse.alert.Alert;
-import com.alexroyodev.crowdpulse.alert.AlertLevel;
 import com.alexroyodev.crowdpulse.alert.AlertPolicy;
 import com.alexroyodev.crowdpulse.alert.AlertRepository;
 import com.alexroyodev.crowdpulse.occupancy.LockedZone;
 import com.alexroyodev.crowdpulse.occupancy.OccupancyChange;
 import com.alexroyodev.crowdpulse.occupancy.OccupancyRepository;
+import com.alexroyodev.crowdpulse.shared.AlertLevel;
+import com.alexroyodev.crowdpulse.shared.Percentages;
 import com.alexroyodev.crowdpulse.zone.UnknownZoneException;
-import com.alexroyodev.crowdpulse.zone.ZoneView;
 
 @Service
 class EventService {
@@ -87,7 +87,7 @@ class EventService {
 					.addKeyValue("zoneId", request.zoneId())
 					.addKeyValue("from", zone.alertLevel())
 					.addKeyValue("to", level)
-					.addKeyValue("occupancyPct", ZoneView.percentage(occupancy, zone.capacity()))
+					.addKeyValue("occupancyPct", Percentages.of(occupancy, zone.capacity()))
 					.addKeyValue("eventId", request.eventId())
 					.log();
 		}

@@ -1,7 +1,7 @@
 package com.alexroyodev.crowdpulse.alert;
 
-import static com.alexroyodev.crowdpulse.alert.AlertLevel.NORMAL;
-import static com.alexroyodev.crowdpulse.alert.AlertLevel.WARNING;
+import static com.alexroyodev.crowdpulse.shared.AlertLevel.NORMAL;
+import static com.alexroyodev.crowdpulse.shared.AlertLevel.WARNING;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
@@ -12,6 +12,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import com.alexroyodev.crowdpulse.alert.AlertProperties.Threshold;
+import com.alexroyodev.crowdpulse.shared.AlertLevel;
 
 class AlertPolicyTest {
 

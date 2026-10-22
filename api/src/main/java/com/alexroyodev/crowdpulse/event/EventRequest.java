@@ -3,6 +3,8 @@ package com.alexroyodev.crowdpulse.event;
 import java.time.Instant;
 import java.util.UUID;
 
+import com.alexroyodev.crowdpulse.shared.EventType;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
