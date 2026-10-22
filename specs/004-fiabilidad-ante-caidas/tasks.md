@@ -43,7 +43,7 @@ Al terminar se marca `[x]`. `DeadLetterIT` debe seguir en verde en todas (CA6).
     aserción no probaba nada. Con 30 s, sin clasificación un evento va al DLT y el test falla.
   - **Verificación:** `./mvnw verify`.
 
-- [ ] **T04 — Kafka caído durante el consumo** (plan §3; CA3)
+- [x] **T04 — Kafka caído durante el consumo** (plan §3; CA3)
   - `KafkaRestartIT`: Kafka en pausa 10 s a mitad de 1 000 eventos → todos aplicados una vez.
   - Si aparece un fallo, se analiza antes de tocar código (el plan no espera ninguno).
   - **Verificación:** `./mvnw verify`.
