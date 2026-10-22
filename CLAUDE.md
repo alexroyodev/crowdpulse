@@ -113,8 +113,9 @@ explicar cada línea en una entrevista. Simple y verificable antes que completo.
 - Tests unitarios: `./mvnw test`
 - Todos los tests (incl. integración): `./mvnw verify`
 - Ejecutar la API: `./mvnw -pl api spring-boot:run` (puerto 8080)
-- Ejecutar el processor: `./mvnw -pl processor spring-boot:run` (puerto 8081)
-- Salud: `curl localhost:8080/actuator/health` y `curl localhost:8081/actuator/health`
+- Ejecutar el processor: `./mvnw -pl processor spring-boot:run` (solo en `127.0.0.1:8081`;
+  en Windows `localhost` puede ir a `::1`: en tests usa `127.0.0.1`)
+- Salud: `curl localhost:8080/actuator/health` y `curl 127.0.0.1:8081/actuator/health`
 - Simulador: `./mvnw -pl simulator package` y
   `java -jar simulator/target/simulator.jar --rate=100 --duration=60s --duplicates=5`
 

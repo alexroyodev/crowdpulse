@@ -74,3 +74,8 @@ que de verdad no se puede procesar.
   curso tarda hasta 10 s en fallar.
 - ⚠️ El endpoint de reproceso no tiene autenticación, y un mensaje sin arreglo vuelve al
   DLT cada vez que se reprocesa.
+- 2026-10-22, [spec 005](../../specs/005-remates-de-fiabilidad/spec.md): el `processor` solo
+  escucha en `127.0.0.1` (no es autenticación: no se expone); el reproceso se salta los
+  fallos de contenido, que ya no rebotan (`?all=true` para todo); y el simulador reintenta
+  los 503 como un sensor, con un tiempo de espera (10 s) mayor que lo que tarda la API en
+  responder 503 en el peor caso (~6 s).

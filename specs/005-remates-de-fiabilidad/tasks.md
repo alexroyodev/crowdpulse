@@ -1,6 +1,6 @@
 # Tareas 005 — Remates de fiabilidad
 
-- **Estado:** Aprobado (2026-10-22)
+- **Estado:** Terminado (2026-10-22)
 - **Spec:** [`spec.md`](spec.md) · **Plan:** [`plan.md`](plan.md)
 
 Una tarea cada vez. Está terminada cuando su verificación pasa, `./mvnw verify` está en
@@ -40,9 +40,25 @@ actualizado. Al terminar se marca `[x]`.
     `ZoneRunner`); un cuarto test cubre la lectura de `Retry-After` (segundos, 1 s si falta o
     es una fecha). Sin reintentos fallan los 3 tests de reintento.
 
-- [ ] **T04 — Demo, documentación y cierre** (CA5, CA6)
+- [x] **T04 — Demo, documentación y cierre** (CA5, CA6)
   - Demo del plan §4.
   - README; nota en el ADR 0005.
   - CA6: clon limpio + `docker compose up -d` + `verify` por módulos.
   - Tabla de verificación de los CA; spec y tareas terminadas; `MEMORY.md` (fase 3
     cerrada, problemas abiertos de la spec 004 resueltos).
+  - Hecho así (2026-10-22): la primera demo perdió 6 eventos por «sin conexión». Con la base
+    de datos caída la API tarda hasta ~6 s en dar el 503, más que los 5 s de espera del
+    simulador, y un timeout no se reintenta. El simulador espera ahora 10 s.
+
+---
+
+## Verificación de los criterios de aceptación
+
+| CA | Cómo se verifica | Resultado |
+|----|------------------|-----------|
+| CA1 | `ProcessorAddressIT` (responde en `127.0.0.1`, no en la IP del equipo; sin `server.address` falla) y `ProcessorAddressOpenIT` (con `0.0.0.0`, sí); manual con `curl` | ✅ |
+| CA2 | `DeadLetterReplaySkipIT` (`{"replayed":1,"skipped":1}`, el JSON roto no rebota; sin clasificación → `{"replayed":2,"skipped":0}` y falla); `ContentFailureTest`; manual en compose: `{"replayed":0,"skipped":2}` y después `0/0` | ✅ |
+| CA3 | `DeadLetterReplaySkipIT` (`?all=true` → `{"replayed":2,"skipped":0}`; el roto vuelve al DLT; la zona no cuenta dos veces) | ✅ |
+| CA4 | `ZoneRunnerTest` (503, 503, 202 → aceptado, mismo evento, esperas de `Retry-After`; 503 > 60 s → fallido; orden por zona); sin reintentos fallan los 3 | ✅ |
+| CA5 | Demo (2026-10-22): 100 ev/s 60 s con PostgreSQL en pausa 30 s → 6 000 × 202, 26 reintentos por 503 (4 eventos), las 4 zonas cuadran, DLT sin mensajes nuevos, dos `WARN` en el `processor` | ✅ |
+| CA6 | `git clone` local limpio + `docker compose up -d` + `./mvnw verify` por módulos (2026-10-22): 189 tests en verde | ✅ |

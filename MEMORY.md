@@ -1,11 +1,8 @@
 # MEMORY.md — Estado de CrowdPulse
 
 ## Estado actual
-- Fase 3 cumplida (2026-10-22). Specs 001–004 terminadas; verificación de los CA al final
-  de cada `tasks.md`.
-- Spec activa: `specs/005-remates-de-fiabilidad/` (fase 3): spec, plan y tareas aprobados;
-  hecho: T01–T03; siguiente: T04 (cierre) (processor en 127.0.0.1, reproceso que salta fallos de contenido, simulador
-  que reintenta 503).
+- Fase 3 cumplida (2026-10-22). Specs 001–005 terminadas; verificación de los CA al final
+  de cada `tasks.md`. Sin spec activa: la siguiente sería la fase 4 (observabilidad).
 - Código: monorepo Maven; módulos `shared/` (migraciones, enums, `SensorEventMessage` v1,
   `Topics`), `api/` (valida, 422, publica; consultas), `processor/` (8081, `EventProcessor`:
   reglas de 001 y 002) y `simulator/`.
@@ -14,7 +11,8 @@
 - Maven, Java 21, Flyway, sin Lombok: código explícito y fácil de defender.
 - Caídas (ADR 0005): `DatabaseUnavailable` (`shared`) separa «BD caída» (reintento sin
   límite 1→30 s, `WARN` al caer y al volver) de «mensaje malo» (DLT); estado SQL `08…`
-  incluido. API sin BD → 503. Reproceso: `POST /admin/dead-letters/replay` (8081).
+  incluido. API sin BD → 503. Reproceso: `POST /admin/dead-letters/replay` (salta fallos
+  de contenido; `?all=true` todo). `processor` solo en 127.0.0.1 (spec 005).
 - Kafka (ADR 0004): clave `zoneId`, 3 particiones; la API espera el ack (si no, 503);
   offset tras el commit (`ack-mode: record`); idempotencia por `eventId`; DLT tras 3
   intentos (directo si no es reintentable). `idIsGroup = false` en el listener.
@@ -36,9 +34,8 @@
   `processed_at` (filas antiguas = `received_at`). No editarlas: cambios en V6+.
 
 ## Problemas abiertos
-- El reproceso del DLT no tiene autenticación, y un mensaje sin arreglo rebota en cada
-  llamada (no se puede descartar uno concreto). Aceptado en fase 3 (D2).
-- El simulador no reintenta los 503: durante una caída su informe sale en ERROR.
+- Sin autenticación real en el `processor` (solo escucha en local): pendiente para cuando
+  haya despliegue.
 
 ## Errores a evitar
 - Tests de «a mitad»: no depender del tiempo (lotes de 10, o construir la mitad publicando

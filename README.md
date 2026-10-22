@@ -6,7 +6,8 @@ poder demostrar cómo se comporta ante duplicados, desorden, concurrencia y rein
 
 **Estado:** fase 3 (fiabilidad) — specs [001 (ingesta)](specs/001-ingesta-mvp/spec.md),
 [002 (alertas)](specs/002-alertas-umbrales/spec.md), [003 (Kafka)](specs/003-procesamiento-asincrono/spec.md)
-y [004 (caídas)](specs/004-fiabilidad-ante-caidas/spec.md) terminadas.
+[004 (caídas)](specs/004-fiabilidad-ante-caidas/spec.md) y [005 (remates)](specs/005-remates-de-fiabilidad/spec.md)
+terminadas.
 
 ```
 simulator ──POST /api/v1/events──► api ──clave zoneId──► Kafka ──► processor ──► PostgreSQL
@@ -46,6 +47,8 @@ simulator ──POST /api/v1/events──► api ──clave zoneId──► Kaf
 | Con Kafka caído a mitad del consumo, al volver cada evento se aplica una vez | `KafkaRestartIT` |
 | Con dos `processor`, si uno cae el otro termina el trabajo, exacto y en orden | `TwoInstancesIT` |
 | El DLT se reprocesa cuando se arregla la causa, una vez por mensaje y sin contar dos veces | `DeadLetterReplayIT` |
+| El reproceso se salta los mensajes con contenido roto (no rebotan); `?all=true` lo reprocesa todo | `DeadLetterReplaySkipIT`, `ContentFailureTest` |
+| El `processor` solo es accesible desde el propio equipo (salvo que se configure otra cosa) | `ProcessorAddressIT`, `ProcessorAddressOpenIT` |
 | Sin base de datos la API responde `503`, nunca `500` | `DatabaseDownIT` |
 | El estado y las alertas sobreviven a un reinicio | `ProcessorRestartIT` |
 | Errores en formato `ProblemDetail` (RFC 9457), en español y sin trazas | `ApiErrorsIT`, `EventIngestionIT` |
@@ -72,9 +75,9 @@ fallar. Las decisiones técnicas están en [`docs/adr/`](docs/adr/) (la de Kafka
 
 docker compose up -d                  # PostgreSQL y Kafka
 ./mvnw -pl api spring-boot:run        # API en el 8080 (otra terminal)
-./mvnw -pl processor spring-boot:run  # processor en el 8081 (otra terminal)
+./mvnw -pl processor spring-boot:run  # processor en 127.0.0.1:8081 (otra terminal)
 curl localhost:8080/actuator/health
-curl localhost:8081/actuator/health
+curl 127.0.0.1:8081/actuator/health
 ```
 
 ### API
@@ -125,7 +128,9 @@ java -jar simulator/target/simulator.jar --help
 ```
 
 Envía los eventos de cada zona en orden desde su propio hilo, con más entradas al
-principio y más salidas al final. Al terminar espera a que la API refleje los eventos
+principio y más salidas al final. Como un sensor, si la API responde `503` espera lo que
+diga `Retry-After` y reenvía el mismo evento (hasta 60 s), y espera hasta 10 s cada
+respuesta. Con PostgreSQL en pausa 30 s a mitad de la demo, el informe termina en OK. Al terminar espera a que la API refleje los eventos
 (consulta cada 500 ms, hasta 30 s), compara el cambio de ocupación de cada zona con el
 esperado (entradas − salidas únicas) y sale con código `0` si todo cuadra y todas las
 respuestas fueron `202`.
@@ -164,11 +169,15 @@ docker compose pause postgres     # simular la caída (pause, no stop: el puerto
 docker compose unpause postgres
 
 # Arreglada la causa, reprocesar lo que haya en el DLT desde la última vez
-curl -X POST localhost:8081/admin/dead-letters/replay     # {"replayed": n}
+curl -X POST 127.0.0.1:8081/admin/dead-letters/replay            # {"replayed": n, "skipped": m}
+curl -X POST '127.0.0.1:8081/admin/dead-letters/replay?all=true' # todo el DLT, desde el principio
 ```
 
-Un mensaje que sigue sin poder procesarse vuelve al DLT y se reenviará en cada llamada.
-El endpoint no tiene autenticación: el puerto 8081 debe quedarse en local.
+- El reproceso normal **se salta** los mensajes cuyo contenido está roto (JSON ilegible,
+  campos que faltan, versión desconocida): ningún cambio del entorno los arregla. Nada se
+  borra del DLT; `?all=true` vuelve a pasar todo, también lo saltado.
+- El endpoint no tiene autenticación, así que el `processor` **solo escucha en
+  `127.0.0.1`**. Para abrirlo: `CROWDPULSE_PROCESSOR_ADDRESS=0.0.0.0`.
 
 ## Cómo se trabaja
 Spec-driven: cada cambio parte de `specs/NNN-nombre/` (`spec.md` → `plan.md` →

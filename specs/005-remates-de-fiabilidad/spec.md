@@ -1,6 +1,6 @@
 # Spec 005 — Remates de fiabilidad
 
-- **Estado:** Aprobada (2026-10-22): propuestas aceptadas por el autor
+- **Estado:** Terminada (2026-10-22); propuestas aceptadas por el autor
 - **Fase:** 3
 - **Fecha:** 2026-10-22
 - **Depende de:** [spec 004](../004-fiabilidad-ante-caidas/spec.md)

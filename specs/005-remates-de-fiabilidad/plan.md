@@ -1,6 +1,6 @@
 # Plan 005 — Remates de fiabilidad
 
-- **Estado:** Aprobado (2026-10-22)
+- **Estado:** Aprobado (2026-10-22); implementado (desviaciones en `tasks.md`, «Hecho así»)
 - **Spec:** [`spec.md`](spec.md)
 - **Fase:** 3
 - **Fecha:** 2026-10-22
