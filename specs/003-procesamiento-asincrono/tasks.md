@@ -1,6 +1,6 @@
 # Tareas 003 — Procesamiento asíncrono con Kafka
 
-- **Estado:** Aprobado (2026-10-22)
+- **Estado:** Terminado (2026-10-22)
 - **Spec:** [`spec.md`](spec.md) · **Plan:** [`plan.md`](plan.md)
 
 Una tarea cada vez. Está terminada cuando su verificación pasa, `./mvnw verify` está en
@@ -134,7 +134,7 @@ tests, ninguna aserción se borra ni se relaja: cambia de sitio (plan §7).
     tarde, no cuadra en 30 s.
   - **Verificación:** `./mvnw -pl simulator verify`.
 
-- [ ] **T11 — Demo, documentación y verificación final** (CA9, CA10)
+- [x] **T11 — Demo, documentación y verificación final** (CA9, CA10)
   - Demo: `--rate=100 --duration=60s --duplicates=5` → OK; latencia p50/p95/p99 con la
     consulta SQL del README.
   - `docs/adr/0004-kafka-entre-api-y-processor.md`.
@@ -144,3 +144,21 @@ tests, ninguna aserción se borra ni se relaja: cambia de sitio (plan §7).
   - Tabla de verificación de los CA al final de este fichero; spec y tareas terminadas;
     `MEMORY.md` actualizado (fase 2 cerrada).
   - **Verificación:** todos los CA con test o verificación manual registrada.
+
+---
+
+## Verificación de los criterios de aceptación
+
+| CA | Cómo se verifica | Resultado |
+|----|------------------|-----------|
+| CA1 | `EventPublishingIT.acceptedEventIsPublishedWithZoneKeyVersionAndReceivedAt` (202 → mensaje con clave, versión y `receivedAt`) y `KafkaProcessingIT.publishedEventIsAppliedWithinFiveSeconds` (< 5 s, `receivedAt ≤ processedAt`); manual: `curl` + `GET /zones`, 115 ms | ✅ |
+| CA2 | `KafkaOutageIT` (broker en pausa → 503 en ~3 s con `Retry-After`; lo aceptado antes está en el topic; el reintento recibe 202; mutación sin esperar a `get()` → 202 en plena caída); que todo lo del topic se procesa lo prueban `KafkaProcessingIT` y `ProcessorRestartIT`; manual: `docker compose stop kafka` → 503 en 3,2 s | ✅ |
+| CA3 | `EventIngestionIT` (400 y 422 → nada publicado) | ✅ |
+| CA3b | `DeadLetterIT` (JSON roto, sin versión, versión 2, campo que falta, zona inexistente → DLT a la primera con log ERROR; la zona sigue; fallo pasajero → reintento sin DLT; sin recuperador fallan 4 de 5); manual con `kafka-console-producer.sh` | ✅ |
+| CA4 | `EventPublishingIT.duplicateIsPublishedAgain`, `KafkaProcessingIT.sameEventPublishedTwiceCountsOnce` | ✅ |
+| CA5 | `EventPublishingIT` (misma partición y orden; con clave `eventId` falla), `KafkaProcessingIT` (`ENTRY`/`EXIT` alternos sin anomalías, en orden de publicación) | ✅ |
+| CA6 | `ProcessorRestartIT.restartHalfwayThroughAThousandEventsLosesNoneAndCountsNoneTwice` | ✅ |
+| CA7 | `AtLeastOnceIT` (caída antes y después del commit; mutaciones: offset antes de procesar → evento perdido; sin detectar duplicados → cuenta doble) | ✅ |
+| CA8 | `KafkaProcessingIT` (1 000 publicados desde 20 hilos → 1 000; cruce de umbral; anomalía); las reglas de 001 y 002 en `EventProcessingIT`, `AlertProcessingIT`, `ConcurrentIngestionIT`, `ConcurrentAlertIT` | ✅ |
+| CA9 | Demo (2026-10-22): `--rate=100 --duration=60s --duplicates=5` → 6 000 × 202, la API cuadró en 0,5 s, OK. Latencia con el sistema caliente: p50 22 ms, p95 39 ms, p99 58 ms, máx. 170 ms (en frío, los primeros 10 s llegaron a ~2,9 s mientras el `processor` se ponía al día) | ✅ |
+| CA10 | `git clone` local limpio + `docker compose up -d` + `./mvnw verify` (2026-10-22): 156 tests en verde | ✅ |

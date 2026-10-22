@@ -1,6 +1,6 @@
 # Plan 003 — Procesamiento asíncrono con Kafka
 
-- **Estado:** Aprobado (2026-10-22)
+- **Estado:** Aprobado (2026-10-22); implementado (ver desviaciones en `tasks.md`, «Hecho así»)
 - **Spec:** [`spec.md`](spec.md)
 - **Fase:** 2
 - **Fecha:** 2026-10-22

@@ -1,19 +1,17 @@
 # MEMORY.md — Estado de CrowdPulse
 
 ## Estado actual
-- Fase 2 en curso. Specs 001 y 002 terminadas (2026-10-21; verificación de los CA al
-  final de su `tasks.md`).
-- Spec activa: `specs/003-procesamiento-asincrono/`: spec, plan y tareas aprobados
-  (2026-10-22), con permiso para `shared`, `processor`, Kafka, 9092 fijo y V5.
-  Hecho: T01–T10. Siguiente: T11 (cierre). Kafka `apache/kafka:4.2.2`.
-  Mensaje validado con anotaciones en `SensorEventMessage` (solo `jakarta.validation-api`).
+- Fase 2 cumplida (2026-10-22). Specs 001, 002 y 003 terminadas; verificación de los CA
+  al final de cada `tasks.md`. Sin spec activa: la siguiente sería la fase 3 (fiabilidad).
 - Código: monorepo Maven; módulos `shared/` (migraciones, enums, `SensorEventMessage` v1,
   `Topics`), `api/` (valida, 422, publica; consultas), `processor/` (8081, `EventProcessor`:
   reglas de 001 y 002) y `simulator/`.
 
 ## Decisiones (y su porqué)
 - Maven, Java 21, Flyway, sin Lombok: código explícito y fácil de defender.
-- `POST /events` responde 202 desde la fase 1: el contrato no cambia con Kafka.
+- Kafka (ADR 0004): clave `zoneId`, 3 particiones; la API espera el ack (si no, 503);
+  offset tras el commit (`ack-mode: record`); idempotencia por `eventId`; DLT tras 3
+  intentos (directo si no es reintentable). `idIsGroup = false` en el listener.
 - JdbcClient en vez de JPA (ADR 0001); bloqueo pesimista `FOR UPDATE` por zona
   (ADR 0002). Un `EXIT` anómalo sí actualiza `lastEventAt`.
 - Alertas (ADR 0003): nivel decidido por `AlertPolicy` (pura, enteros exactos) dentro
@@ -35,12 +33,12 @@
   `processed_at` (filas antiguas = `received_at`). No editarlas: cambios en V6+.
 
 ## Problemas abiertos
-- Spec 003: con PostgreSQL caído más de ~3 s, los eventos van al DLT y la ocupación queda
-  mal hasta reprocesarlos. Aceptado para la fase 2; distinguirlo es de la fase 3.
+- Con PostgreSQL caído más de ~3 s, los eventos van al DLT y la ocupación queda mal hasta
+  reprocesarlos (no hay herramienta de reproceso). Aceptado en fase 2; es de la fase 3.
 
 ## Errores a evitar
-- `-Dit.test=X` con módulos: `-pl shared,api` (o `,processor`) y
-  `-Dfailsafe.failIfNoSpecifiedTests=false`; sin `shared` en el reactor no resuelve.
+- Espiar un bean `@Transactional` con `@MockitoSpyBean`: el espía queda dentro de la
+  transacción; para «fallar tras el commit» usa `afterCommit` (T09 de la spec 003).
 - Tras mover recursos de un módulo a otro, `./mvnw clean`: `target/classes` guarda las
   copias viejas y los tests pasan con ellas (pasó en T01 con `db/migration`).
 - Git Bash no tiene `/proc/sys/kernel/random/uuid` ni `uuidgen`: UUIDs con

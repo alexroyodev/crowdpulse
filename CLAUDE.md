@@ -10,10 +10,12 @@ explicar cada línea en una entrevista. Simple y verificable antes que completo.
   OpenTelemetry, GitHub Actions. Kubernetes queda fuera del alcance.
 - Monorepo:
   - `api/` — ingesta de eventos (`POST`) y consulta de ocupación (`GET`).
-  - `processor/` — consumidor de Kafka (aparece en la fase 2).
+  - `processor/` — consumidor de Kafka: aplica ocupación y alertas (fase 2).
+  - `shared/` — lo que comparten `api` y `processor`: migraciones Flyway, enums y el
+    mensaje `SensorEventMessage`.
   - `simulator/` — generador de eventos de sensores.
   - `dashboard/` — React + TS (fase 4).
-  - `compose.yaml` — PostgreSQL y, más adelante, Kafka y observabilidad.
+  - `compose.yaml` — PostgreSQL y Kafka (puerto fijo 9092); más adelante, observabilidad.
   - `docs/` — `constitution.md`, `architecture.md`, ADRs en `docs/adr/`.
   - `specs/NNN-nombre/` — `spec.md`, `plan.md`, `tasks.md`.
 - Paquetes por funcionalidad (`event`, `occupancy`, `alert`, `zone`), no por capa.
@@ -96,7 +98,9 @@ explicar cada línea en una entrevista. Simple y verificable antes que completo.
   ni mocks de la base de datos.
 - Cada garantía tiene su test: evento duplicado, `EXIT` antes de `ENTRY`, reinicio
   del consumidor sin perder eventos. Valídalo una vez quitando el mecanismo y viéndolo
-  fallar (constitución, principio 2). Con `-Dit.test=...` usa `-pl api`.
+  fallar (constitución, principio 2). Un solo `*IT`: `./mvnw verify -pl shared,api` (o
+  `shared,processor`) `-Dit.test=X -Dtest=none -Dsurefire.failIfNoSpecifiedTests=false
+  -Dfailsafe.failIfNoSpecifiedTests=false` (`shared` debe estar en el reactor).
 - Los `*IT` comparten contexto y contenedor: si cambian datos, `@Sql("/reset-state.sql")`
   antes y después de cada test.
 - Tras cada cambio de la API, levanta el entorno y prueba los endpoints con `curl`.
@@ -108,15 +112,18 @@ explicar cada línea en una entrevista. Simple y verificable antes que completo.
 - Entorno: `docker compose up -d` / `docker compose down -v` (borra datos)
 - Tests unitarios: `./mvnw test`
 - Todos los tests (incl. integración): `./mvnw verify`
-- Ejecutar la API: `./mvnw -pl api spring-boot:run`
-- Salud: `curl localhost:8080/actuator/health`
+- Ejecutar la API: `./mvnw -pl api spring-boot:run` (puerto 8080)
+- Ejecutar el processor: `./mvnw -pl processor spring-boot:run` (puerto 8081)
+- Salud: `curl localhost:8080/actuator/health` y `curl localhost:8081/actuator/health`
 - Simulador: `./mvnw -pl simulator package` y
   `java -jar simulator/target/simulator.jar --rate=100 --duration=60s --duplicates=5`
 
 ### Notas de Windows
 - El `java` del PATH es 17: usa `$JAVA_HOME/bin/java` (JDK 21) para el simulador.
-- Parar `./mvnw spring-boot:run` deja vivo el `java.exe` hijo en el 8080: búscalo con
-  `netstat -ano | grep :8080` y páralo.
+- Parar `./mvnw spring-boot:run` deja vivo el `java.exe` hijo en el 8080/8081: búscalo
+  con `netstat -ano | grep :8080` y páralo.
+- Varios `./mvnw verify` a la vez (o en segundo plano) pueden agotar la memoria: cada
+  contexto de test levanta su PostgreSQL y su Kafka. Uno cada vez, con compose parado.
 - En Git Bash, `-Dstdout.encoding=UTF-8` para ver los acentos del simulador.
 - Docker Desktop no arranca solo tras reiniciar: sin él fallan todos los `*IT`.
 
