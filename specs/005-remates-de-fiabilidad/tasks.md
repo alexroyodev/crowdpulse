@@ -1,6 +1,6 @@
 # Tareas 005 — Remates de fiabilidad
 
-- **Estado:** Borrador, pendiente de aprobación
+- **Estado:** Aprobado (2026-10-22)
 - **Spec:** [`spec.md`](spec.md) · **Plan:** [`plan.md`](plan.md)
 
 Una tarea cada vez. Está terminada cuando su verificación pasa, `./mvnw verify` está en
@@ -9,7 +9,7 @@ actualizado. Al terminar se marca `[x]`.
 
 ---
 
-- [ ] **T01 — El `processor`, solo en local** (plan §1; CA1)
+- [x] **T01 — El `processor`, solo en local** (plan §1; CA1)
   - `server.address: ${CROWDPULSE_PROCESSOR_ADDRESS:127.0.0.1}`.
   - Tests que llamen al `processor` por HTTP: `127.0.0.1` en lugar de `localhost`.
   - `ProcessorAddressIT`: por defecto responde en `127.0.0.1` y no en la IP del equipo; con

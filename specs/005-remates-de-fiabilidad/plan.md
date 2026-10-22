@@ -1,6 +1,6 @@
 # Plan 005 — Remates de fiabilidad
 
-- **Estado:** Borrador, pendiente de aprobación
+- **Estado:** Aprobado (2026-10-22)
 - **Spec:** [`spec.md`](spec.md)
 - **Fase:** 3
 - **Fecha:** 2026-10-22

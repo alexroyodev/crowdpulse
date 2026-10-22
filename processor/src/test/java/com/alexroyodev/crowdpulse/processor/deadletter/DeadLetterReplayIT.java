@@ -157,7 +157,7 @@ class DeadLetterReplayIT {
 	}
 
 	private String replay() {
-		return RestClient.create("http://localhost:" + port).post().uri("/admin/dead-letters/replay")
+		return RestClient.create("http://127.0.0.1:" + port).post().uri("/admin/dead-letters/replay")
 				.retrieve().body(String.class);
 	}
 

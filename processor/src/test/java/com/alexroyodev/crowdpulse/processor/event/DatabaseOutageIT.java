@@ -139,7 +139,7 @@ class DatabaseOutageIT {
 	}
 
 	private String health() {
-		return RestClient.create("http://localhost:" + port).get().uri("/actuator/health")
+		return RestClient.create("http://127.0.0.1:" + port).get().uri("/actuator/health")
 				.exchange((request, response) -> new String(response.getBody().readAllBytes()));
 	}
 

@@ -34,6 +34,9 @@ spring:
 server:
   # The API listens on 8080.
   port: 8081
+  # Spec 005: only reachable from this machine, which protects the dead-letter replay endpoint;
+  # CROWDPULSE_PROCESSOR_ADDRESS=0.0.0.0 opens it to every address. Not authentication.
+  address: ${CROWDPULSE_PROCESSOR_ADDRESS:127.0.0.1}
   error:
     include-stacktrace: never
 
