@@ -57,6 +57,12 @@ Al terminar se marca `[x]`. `DeadLetterIT` debe seguir en verde en todas (CA6).
     valores por defecto y el `server.port: 8081` del `application.yml` les ganaba (la segunda
     instancia no arrancaba). Se pasan como argumentos de línea de comandos, también en
     `ProcessorRestartIT`. 3 `verify` seguidos en verde (171 tests).
+  - Corregido en T08 (2026-10-22): falló en el clon limpio de CA8, porque «parada a mitad»
+    dependía del tiempo, y además las 5 zonas reales dejan la partición 1 vacía (hash de la
+    clave), así que la segunda instancia podía no tener trabajo. Ahora las dos instancias
+    forman el grupo antes de publicar, aplican juntas 500 eventos de tres zonas de test (una
+    por partición, calculada como el productor), se cierra una y la otra aplica los 500
+    restantes: a mitad por construcción.
 
 - [x] **T06 — Reproceso del DLT** (plan §5; D2, CA5)
   - Paquete `deadletter`: `DeadLetterController` y `DeadLetterReplayer`;
