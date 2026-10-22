@@ -120,17 +120,20 @@ class EventIngestionIT {
 
 		post(event(eventId, "OESTE", "ENTRY", occurredAt)).expectStatus().isAccepted();
 
-		StoredTimes times = jdbc.sql("SELECT occurred_at, received_at FROM sensor_event WHERE event_id = :id")
+		StoredTimes times = jdbc.sql("SELECT occurred_at, received_at, processed_at FROM sensor_event WHERE event_id = :id")
 				.param("id", eventId)
 				.query((rs, rowNum) -> new StoredTimes(
 						rs.getObject("occurred_at", OffsetDateTime.class).toInstant(),
-						rs.getObject("received_at", OffsetDateTime.class).toInstant()))
+						rs.getObject("received_at", OffsetDateTime.class).toInstant(),
+						rs.getObject("processed_at", OffsetDateTime.class).toInstant()))
 				.single();
 		assertThat(times.occurredAt()).isEqualTo(occurredAt);
 		assertThat(times.receivedAt()).isEqualTo(NOW);
+		// Still processed in the request that received it (spec 003 moves this to the processor).
+		assertThat(times.processedAt()).isEqualTo(NOW);
 	}
 
-	record StoredTimes(Instant occurredAt, Instant receivedAt) {
+	record StoredTimes(Instant occurredAt, Instant receivedAt, Instant processedAt) {
 	}
 
 	// --- CA3: invalid requests -> 400 ProblemDetail naming the field; nothing changes ---

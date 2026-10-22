@@ -22,7 +22,7 @@ tests, ninguna aserción se borra ni se relaja: cambia de sitio (plan §7).
     local de la fase 1 (sin `down -v`), la API arranca y Flyway valida V1–V4 sin errores
     (los *checksums* no cambian al mover los ficheros).
 
-- [ ] **T02 — Migración V5 y contrato del mensaje** (plan §4, §6)
+- [x] **T02 — Migración V5 y contrato del mensaje** (plan §4, §6)
   - `V5__add_processed_at.sql`. Mientras la API siga procesando, `SensorEventRepository`
     guarda `processed_at = received_at` (lo que significa en la fase 1).
   - `shared.SensorEventMessage` (record v1) y `shared.Topics` (topics y cabecera de versión).

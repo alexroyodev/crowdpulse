@@ -70,8 +70,8 @@ class MigrationIT {
 	void oneEventCausesAtMostOneLevelChange() {
 		UUID eventId = UUID.randomUUID();
 		jdbc.sql("""
-				INSERT INTO sensor_event (event_id, sensor_id, zone_id, type, occurred_at, received_at)
-				VALUES (:id, 'NORTE-P01', 'NORTE', 'ENTRY', now(), now())
+				INSERT INTO sensor_event (event_id, sensor_id, zone_id, type, occurred_at, received_at, processed_at)
+				VALUES (:id, 'NORTE-P01', 'NORTE', 'ENTRY', now(), now(), now())
 				""").param("id", eventId).update();
 		String insertAlert = """
 				INSERT INTO alert (alert_id, zone_id, from_level, to_level, occupancy, capacity, event_id,
@@ -83,6 +83,16 @@ class MigrationIT {
 		assertThatThrownBy(() -> jdbc.sql(insertAlert).param("alertId", UUID.randomUUID()).param("eventId", eventId).update())
 				.isInstanceOf(DataIntegrityViolationException.class)
 				.hasMessageContaining("alert_event_id_key");
+	}
+
+	@Test
+	void databaseRequiresTheProcessingTime() {
+		assertThatThrownBy(() -> jdbc.sql("""
+				INSERT INTO sensor_event (event_id, sensor_id, zone_id, type, occurred_at, received_at)
+				VALUES (:id, 'NORTE-P01', 'NORTE', 'ENTRY', now(), now())
+				""").param("id", UUID.randomUUID()).update())
+				.isInstanceOf(DataIntegrityViolationException.class)
+				.hasMessageContaining("processed_at");
 	}
 
 	@Test
