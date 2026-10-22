@@ -123,7 +123,10 @@ explicar cada línea en una entrevista. Simple y verificable antes que completo.
 - Parar `./mvnw spring-boot:run` deja vivo el `java.exe` hijo en el 8080/8081: búscalo
   con `netstat -ano | grep :8080` y páralo.
 - Varios `./mvnw verify` a la vez (o en segundo plano) pueden agotar la memoria: cada
-  contexto de test levanta su PostgreSQL y su Kafka. Uno cada vez, con compose parado.
+  contexto de test levanta su PostgreSQL y su Kafka. Uno cada vez, con compose parado. El
+  completo pasa de 10 min: por módulos, `-pl shared,api` y `-pl shared,processor,simulator`.
+- Para simular caídas usa `docker compose pause`/`unpause`, no `stop`: PostgreSQL usa un
+  puerto aleatorio que cambia al rearrancar y las aplicaciones no lo volverían a encontrar.
 - En Git Bash, `-Dstdout.encoding=UTF-8` para ver los acentos del simulador.
 - Docker Desktop no arranca solo tras reiniciar: sin él fallan todos los `*IT`.
 

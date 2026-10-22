@@ -1,6 +1,6 @@
 # Tareas 004 — Fiabilidad ante caídas
 
-- **Estado:** Aprobado (2026-10-22)
+- **Estado:** Terminado (2026-10-22)
 - **Spec:** [`spec.md`](spec.md) · **Plan:** [`plan.md`](plan.md)
 
 Una tarea cada vez. Está terminada cuando su verificación pasa, `./mvnw verify` está en
@@ -97,12 +97,36 @@ Al terminar se marca `[x]`. `DeadLetterIT` debe seguir en verde en todas (CA6).
 
 ## Bloque D — Cierre
 
-- [ ] **T08 — Demo, documentación y verificación final** (CA8)
+- [x] **T08 — Demo, documentación y verificación final** (CA8)
   - Demo: simulador a 100 ev/s; a mitad, `docker compose pause postgres` 30 s y `unpause`
     → informe en OK, DLT vacío, los dos `WARN` en el log del `processor`.
+  - Hecho así (2026-10-22): esa demo no podía salir en OK, porque sin base de datos la API
+    rechaza con 503 (D3) y el simulador no reintenta. Se hizo la de CA1: simulador con el
+    `processor` parado (6 000 eventos aceptados en Kafka), `processor` arrancado y PostgreSQL
+    en pausa 30 s con 227 aplicados. Al volver, las 4 zonas = antes + esperado, DLT sin
+    mensajes nuevos, salud `DOWN` durante la caída y dos `WARN`.
+  - La verificación en el clon limpio destapó dos tests que dependían del tiempo:
+    `TwoInstancesIT` (ver T05) y la parada a mitad de `KafkaRestartIT` y `ProcessorRestartIT`
+    (con 500 mensajes por petición se podían procesar todos antes de la caída o del cierre;
+    ahora 10). `verify` completo ya pasa de 10 min: se ejecuta por módulos.
   - `docs/adr/0005-fallo-de-infraestructura-frente-a-mensaje-malo.md`.
   - `README.md` (garantías nuevas, reproceso del DLT) y `CLAUDE.md` si cambia algún comando.
   - CA8: clon limpio + `docker compose up -d` + `./mvnw verify`.
   - Tabla de verificación de los CA al final de este fichero; spec y tareas terminadas;
     `MEMORY.md` actualizado (problema abierto de la spec 003 cerrado).
   - **Verificación:** todos los CA con test o verificación manual registrada.
+
+---
+
+## Verificación de los criterios de aceptación
+
+| CA | Cómo se verifica | Resultado |
+|----|------------------|-----------|
+| CA1 | `DatabaseOutageIT` (PostgreSQL en pausa 30 s a mitad de 1 000 eventos → exacto, sin anomalías, DLT vacío; sin clasificador, un evento va al DLT); demo manual con 6 000 eventos en Kafka | ✅ |
+| CA2 | `DatabaseOutageIT` (`health` `DOWN` durante la pausa; un `WARN` de caída y uno de recuperación); manual: salud del `processor` → 503 `DOWN` | ✅ |
+| CA3 | `KafkaRestartIT` (Kafka en pausa 10 s a mitad de 1 000 eventos → todos una vez); sin mutación propia (plan §7) | ✅ |
+| CA4 | `TwoInstancesIT` (las dos instancias aplican 500 eventos, se cierra una, la otra aplica los 500 restantes; exacto, sin anomalías); 3 ejecuciones en verde; sin mutación propia (plan §7) | ✅ |
+| CA5 | `DeadLetterReplayIT` (zona añadida → reprocesado y aplicado, `{"replayed":1}`, después `{"replayed":0}`; evento ya aplicado → no cuenta dos veces; mutaciones: sin cabeceras → vuelve al DLT; sin `commitSync` → se reenvía otra vez); manual con `curl` | ✅ |
+| CA6 | `DeadLetterIT` en verde en todas las tareas | ✅ |
+| CA7 | `DatabaseDownIT` (`POST` y `GET /zones` → 503 en ~3 s; al volver, 202; sin el manejador → 500); manual con `docker compose pause postgres` | ✅ |
+| CA8 | `git clone` local limpio + `docker compose up -d` + `./mvnw verify` por módulos (2026-10-22): 174 tests en verde | ✅ |

@@ -4,9 +4,9 @@ Estimación en tiempo real de la ocupación por zonas de un estadio a partir de 
 sensores de entrada y salida. Proyecto de aprendizaje y portfolio: lo importante es
 poder demostrar cómo se comporta ante duplicados, desorden, concurrencia y reinicios.
 
-**Estado:** fase 2 (procesamiento asíncrono con Kafka) — specs
-[001 (ingesta)](specs/001-ingesta-mvp/spec.md), [002 (alertas)](specs/002-alertas-umbrales/spec.md)
-y [003 (Kafka)](specs/003-procesamiento-asincrono/spec.md) terminadas.
+**Estado:** fase 3 (fiabilidad) — specs [001 (ingesta)](specs/001-ingesta-mvp/spec.md),
+[002 (alertas)](specs/002-alertas-umbrales/spec.md), [003 (Kafka)](specs/003-procesamiento-asincrono/spec.md)
+y [004 (caídas)](specs/004-fiabilidad-ante-caidas/spec.md) terminadas.
 
 ```
 simulator ──POST /api/v1/events──► api ──clave zoneId──► Kafka ──► processor ──► PostgreSQL
@@ -42,6 +42,11 @@ simulator ──POST /api/v1/events──► api ──clave zoneId──► Kaf
 | Si el `processor` cae antes de guardar, el evento vuelve y se aplica; si cae después, vuelve y no cuenta dos veces | `AtLeastOnceIT` |
 | Reiniciar el `processor` a mitad de 1 000 eventos no pierde ni duplica ninguno | `ProcessorRestartIT` |
 | Un mensaje que no se puede procesar va al DLT y su zona sigue adelante | `DeadLetterIT` |
+| Con PostgreSQL caído, el `processor` espera sin límite: al volver, nada perdido, duplicado, desordenado ni en el DLT | `DatabaseOutageIT`, `DatabaseUnavailableTest` |
+| Con Kafka caído a mitad del consumo, al volver cada evento se aplica una vez | `KafkaRestartIT` |
+| Con dos `processor`, si uno cae el otro termina el trabajo, exacto y en orden | `TwoInstancesIT` |
+| El DLT se reprocesa cuando se arregla la causa, una vez por mensaje y sin contar dos veces | `DeadLetterReplayIT` |
+| Sin base de datos la API responde `503`, nunca `500` | `DatabaseDownIT` |
 | El estado y las alertas sobreviven a un reinicio | `ProcessorRestartIT` |
 | Errores en formato `ProblemDetail` (RFC 9457), en español y sin trazas | `ApiErrorsIT`, `EventIngestionIT` |
 | Alerta al llegar al 85 % (`WARNING`) y al 95 % (`CRITICAL`), con histéresis de 5 puntos: oscilar en el umbral genera un solo cambio | `AlertPolicyTest`, `AlertProcessingIT` |
@@ -50,7 +55,8 @@ simulator ──POST /api/v1/events──► api ──clave zoneId──► Kaf
 
 Cada test de garantía se ha validado una vez quitando el mecanismo que la da y viéndolo
 fallar. Las decisiones técnicas están en [`docs/adr/`](docs/adr/) (la de Kafka, en el
-[ADR 0004](docs/adr/0004-kafka-entre-api-y-processor.md)) y los principios del proyecto en
+[ADR 0004](docs/adr/0004-kafka-entre-api-y-processor.md); la de las caídas, en el
+[ADR 0005](docs/adr/0005-fallo-de-infraestructura-frente-a-mensaje-malo.md)) y los principios del proyecto en
 [`docs/constitution.md`](docs/constitution.md).
 
 ## Requisitos
@@ -94,7 +100,7 @@ curl 'localhost:8080/api/v1/alerts?zoneId=PALCO&limit=10'
 | `202` | Evento guardado en Kafka, nuevo o duplicado; se procesará enseguida (consistencia eventual) |
 | `400` | JSON mal formado, campo ausente o con formato inválido, `occurredAt` más de 5 min en el futuro. El cuerpo incluye `errors: [{field, message}]` |
 | `422` | `zoneId` no existe en el catálogo |
-| `503` | Kafka no confirma el evento en unos 3 s; incluye `Retry-After: 1` y el sensor reintenta |
+| `503` | Kafka no confirma el evento en unos 3 s, o la base de datos no responde (no se puede consultar el catálogo); incluye `Retry-After: 1` y el sensor reintenta |
 
 Zonas: `NORTE`, `SUR` (20 000 plazas), `ESTE`, `OESTE` (15 000) y `PALCO` (200, para la
 demo de alertas).
@@ -143,8 +149,26 @@ SELECT count(*),
 FROM sensor_event WHERE received_at > now() - interval '5 minutes';"
 
 # Mensajes que el processor no pudo procesar (también en su log como ERROR)
+# (Reprocesarlos: ver más abajo)
 docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092   --topic crowdpulse.sensor-events.dlt --from-beginning --formatter-property print.headers=true
 ```
+
+### Caídas y reproceso del DLT
+
+Si PostgreSQL deja de responder, el `processor` espera sin límite (reintentos cada 1, 2, 4…
+hasta 30 s), registra un `WARN` al caer y otro al volver, y su `/actuator/health` pasa a
+`DOWN`; la API responde `503` mientras tanto. Nada va al DLT por una caída.
+
+```bash
+docker compose pause postgres     # simular la caída (pause, no stop: el puerto se conserva)
+docker compose unpause postgres
+
+# Arreglada la causa, reprocesar lo que haya en el DLT desde la última vez
+curl -X POST localhost:8081/admin/dead-letters/replay     # {"replayed": n}
+```
+
+Un mensaje que sigue sin poder procesarse vuelve al DLT y se reenviará en cada llamada.
+El endpoint no tiene autenticación: el puerto 8081 debe quedarse en local.
 
 ## Cómo se trabaja
 Spec-driven: cada cambio parte de `specs/NNN-nombre/` (`spec.md` → `plan.md` →
