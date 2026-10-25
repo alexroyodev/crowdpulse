@@ -1,0 +1,84 @@
+# Spec 009: every change that reaches GitHub runs all the tests on a clean machine, with the same
+# commands as CLAUDE.md. Three jobs in parallel (D1), like the local runs by module.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Rule 3: no secrets, read-only.
+permissions:
+  contents: read
+
+# A newer push to the same branch cancels the run of the older one.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: api (shared + api)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      # Integration tests (*IT) use the runner's Docker through Testcontainers (rule 4).
+      - run: ./mvnw -B verify -pl shared,api
+      - name: Test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: api-test-reports
+          path: |
+            **/target/surefire-reports
+            **/target/failsafe-reports
+          retention-days: 7
+
+  processor:
+    name: processor (shared + processor + simulator)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - run: ./mvnw -B verify -pl shared,processor,simulator
+      - name: Test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: processor-test-reports
+          path: |
+            **/target/surefire-reports
+            **/target/failsafe-reports
+          retention-days: 7
+
+  dashboard:
+    name: dashboard
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: dashboard
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+      - run: npm ci
+      - run: npm test
+      # Type check and production build.
+      - run: npm run build

@@ -1,5 +1,7 @@
 # CrowdPulse
 
+[![CI](https://github.com/alexroyodev/crowdpulse/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/alexroyodev/crowdpulse/actions/workflows/ci.yml)
+
 Estimación en tiempo real de la ocupación por zonas de un estadio a partir de eventos de
 sensores de entrada y salida. Proyecto de aprendizaje y portfolio: lo importante es
 poder demostrar cómo se comporta ante duplicados, desorden, concurrencia y reinicios.
@@ -274,3 +276,8 @@ http post /api/v1/events                 (api)        crowdpulse.event.id, zone.
 ## Cómo se trabaja
 Spec-driven: cada cambio parte de `specs/NNN-nombre/` (`spec.md` → `plan.md` →
 `tasks.md`), aprobados por el autor antes de escribir código. Ver [`CLAUDE.md`](CLAUDE.md).
+
+Cada *push* a `main` y cada *pull request* ejecutan en GitHub Actions
+([`ci.yml`](.github/workflows/ci.yml)) los mismos comandos que en local: el `verify` de
+`shared` + `api`, el de `shared` + `processor` + `simulator` (con Testcontainers sobre el
+Docker del runner) y los tests y la compilación del dashboard, en tres trabajos en paralelo.

@@ -19,6 +19,8 @@ explicar cada línea en una entrevista. Simple y verificable antes que completo.
     Jaeger (UI 16686, OTLP 4318), estos tres solo en `127.0.0.1`; su configuración, en
     `observability/` (Jaeger no tiene).
   - `docs/` — `constitution.md`, `architecture.md`, ADRs en `docs/adr/`.
+  - `.github/workflows/ci.yml` — CI (fase 5): `verify` por módulos y los tests del dashboard en
+    cada *push* a `main` y *pull request*.
   - `specs/NNN-nombre/` — `spec.md`, `plan.md`, `tasks.md`.
 - Paquetes por funcionalidad (`event`, `occupancy`, `alert`, `zone`), no por capa.
 

@@ -2,8 +2,8 @@
 
 ## Estado actual
 - Fase 4 terminada (specs 001–008; verificación de los CA al final de cada `tasks.md`).
-  Fase 5 = integración continua con GitHub Actions (enmienda del 2026-10-25). Sin spec activa:
-  la siguiente es la 009 (CI).
+  Fase 5 = integración continua con GitHub Actions (enmienda del 2026-10-25). Spec activa: 009
+  (CI), `spec.md` en borrador, pendiente de aprobación (D1–D4) y de permiso para subir a `origin`.
 - Código: `shared/`, `api/`, `processor/` (8081 local, actuator en 8082), `simulator/`,
   `dashboard/` (npm, fuera de Maven); `observability/`: config de Prometheus y Grafana.
 
