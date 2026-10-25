@@ -171,7 +171,7 @@
       "id": 4,
       "type": "timeseries",
       "title": "4. Mensajes pendientes en Kafka",
-      "description": "Retraso máximo del consumidor del processor (mensajes por leer). Sin datos cuando no hay nada que consumir.",
+      "description": "Mensajes por leer del processor. «Ahora»: suma de las 3 particiones en el momento de la lectura (Kafka publica la métrica con el topic con punto y con guion bajo: se usa una). «Máximo reciente»: el mayor retraso visto en la ventana de muestreo del cliente (~1 min); recoge las ráfagas que una lectura cada 5 s no ve.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -203,9 +203,18 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "max(kafka_consumer_fetch_manager_records_lag_max{job=\"processor\"})",
-          "legendFormat": "pendientes",
+          "expr": "sum(kafka_consumer_fetch_manager_records_lag{job=\"processor\", topic=\"crowdpulse.sensor-events\"})",
+          "legendFormat": "ahora",
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max(kafka_consumer_fetch_manager_records_lag_max{job=\"processor\"})",
+          "legendFormat": "máximo reciente",
+          "refId": "B"
         }
       ]
     },

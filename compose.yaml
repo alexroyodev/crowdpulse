@@ -20,8 +20,9 @@ services:
     # Spec 006: reads /actuator/prometheus of the api (8080) and the processor (8082) on the host.
     image: 'prom/prometheus:v3.15.1'
     ports:
-      # Fixed ports, like Kafka: a person opens these in the browser.
-      - '9090:9090'
+      # Fixed ports, like Kafka: a person opens these in the browser. Only on this machine: no
+      # authentication (Grafana reaches it through the compose network, not this port).
+      - '127.0.0.1:9090:9090'
     volumes:
       - './observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro'
     extra_hosts:
@@ -31,7 +32,8 @@ services:
     # Spec 006: the CrowdPulse dashboard, provisioned from observability/grafana at startup.
     image: 'grafana/grafana:13.2.4'
     ports:
-      - '3000:3000'
+      # Only on this machine, like Prometheus: the admin password below is a development default.
+      - '127.0.0.1:3000:3000'
     environment:
       # Anyone on this machine sees the dashboard without logging in (read only).
       - 'GF_AUTH_ANONYMOUS_ENABLED=true'

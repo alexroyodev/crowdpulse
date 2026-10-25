@@ -49,6 +49,7 @@ class PrometheusEndpointIT {
 			"crowdpulse_zone_alert_level{",
 			"crowdpulse_alerts_total{",
 			"crowdpulse_database_outage ",
+			"kafka_consumer_fetch_manager_records_lag{",
 			"kafka_consumer_fetch_manager_records_lag_max{");
 
 	@LocalManagementPort
