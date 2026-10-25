@@ -34,6 +34,7 @@ más que uno grande a medias.
 | 2 | Procesamiento asíncrono | Kafka, servicio `processor`, DLT básico |
 | 3 | Fiabilidad | Escenarios de caída, varias instancias, reproceso del DLT |
 | 4 | Observabilidad y presentación | Métricas, trazas, dashboard, documentación |
+| 5 | Integración continua | GitHub Actions: los tests de todos los módulos en cada cambio |
 
 ### 4. El tiempo del evento manda
 Se distingue siempre cuándo ocurrió algo (`occurredAt`) de cuándo lo vio el sistema
@@ -88,3 +89,7 @@ el motivo en el registro de abajo. Las decisiones técnicas concretas van en ADR
   ningún mensaje se descarte; los escenarios de caída siguen en la fase 3.
 - 2026-10-22 — Fase 3 pasa a «Escenarios de caída, varias instancias, reproceso del DLT»
   (spec 004, D4). Motivo: la fase 2 ya hizo la idempotencia en el consumidor y el DLT.
+- 2026-10-25 — Fase 5: «Integración continua» (GitHub Actions). Motivo: la fase 4 terminó con
+  su demo (specs 006–008) y la tabla no situaba la CI que `CLAUDE.md` lista en el stack; no
+  cambia el comportamiento del sistema, sino que comprueba en una máquina limpia que sigue en
+  verde (principios 2 y 7).

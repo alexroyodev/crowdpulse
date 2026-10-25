@@ -1,9 +1,9 @@
 # MEMORY.md — Estado de CrowdPulse
 
 ## Estado actual
-- Fase 4 terminada: specs 001–008 terminadas (006 métricas, 007 trazas, 008 dashboard);
-  verificación de los CA al final de cada `tasks.md`. Sin spec activa. Siguiente, según el
-  stack de `CLAUDE.md`: integración continua (GitHub Actions); falta decidir la fase.
+- Fase 4 terminada (specs 001–008; verificación de los CA al final de cada `tasks.md`).
+  Fase 5 = integración continua con GitHub Actions (enmienda del 2026-10-25). Sin spec activa:
+  la siguiente es la 009 (CI).
 - Código: `shared/`, `api/`, `processor/` (8081 local, actuator en 8082), `simulator/`,
   `dashboard/` (npm, fuera de Maven); `observability/`: config de Prometheus y Grafana.
 
