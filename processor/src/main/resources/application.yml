@@ -41,10 +41,16 @@ server:
     include-stacktrace: never
 
 management:
+  server:
+    # Spec 006 (D1, ADR 0006): actuator gets its own server, which serves only health and prometheus,
+    # so it can be open to every address: Prometheus runs in Docker and cannot reach 127.0.0.1 on
+    # the host. The replay endpoint stays on server.port, local only (spec 005).
+    port: 8082
+    address: ${CROWDPULSE_MANAGEMENT_ADDRESS:0.0.0.0}
   endpoints:
     web:
       exposure:
-        include: health
+        include: health, prometheus
 
 logging:
   structured:

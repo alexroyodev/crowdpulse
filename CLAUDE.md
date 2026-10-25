@@ -115,13 +115,14 @@ explicar cada línea en una entrevista. Simple y verificable antes que completo.
 - Ejecutar la API: `./mvnw -pl api spring-boot:run` (puerto 8080)
 - Ejecutar el processor: `./mvnw -pl processor spring-boot:run` (solo en `127.0.0.1:8081`;
   en Windows `localhost` puede ir a `::1`: en tests usa `127.0.0.1`)
-- Salud: `curl localhost:8080/actuator/health` y `curl 127.0.0.1:8081/actuator/health`
+- Salud: `curl localhost:8080/actuator/health` y `curl 127.0.0.1:8082/actuator/health`
+  (actuator del processor en su propio puerto, abierto: ADR 0006)
 - Simulador: `./mvnw -pl simulator package` y
   `java -jar simulator/target/simulator.jar --rate=100 --duration=60s --duplicates=5`
 
 ### Notas de Windows
 - El `java` del PATH es 17: usa `$JAVA_HOME/bin/java` (JDK 21) para el simulador.
-- Parar `./mvnw spring-boot:run` deja vivo el `java.exe` hijo en el 8080/8081: búscalo
+- Parar `./mvnw spring-boot:run` deja vivo el `java.exe` hijo en el 8080/8081/8082: búscalo
   con `netstat -ano | grep :8080` y páralo.
 - Varios `./mvnw verify` a la vez (o en segundo plano) pueden agotar la memoria: cada
   contexto de test levanta su PostgreSQL y su Kafka. Uno cada vez, con compose parado. El

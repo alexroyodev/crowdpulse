@@ -21,7 +21,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -79,8 +79,9 @@ class DatabaseOutageIT {
 
 	}
 
-	@LocalServerPort
-	int port;
+	// Health lives on the management server since spec 006 (ADR 0006).
+	@LocalManagementPort
+	int managementPort;
 
 	private final PostgreSQLContainer postgres;
 	private final TopicPublisher topic;
@@ -139,7 +140,7 @@ class DatabaseOutageIT {
 	}
 
 	private String health() {
-		return RestClient.create("http://127.0.0.1:" + port).get().uri("/actuator/health")
+		return RestClient.create("http://127.0.0.1:" + managementPort).get().uri("/actuator/health")
 				.exchange((request, response) -> new String(response.getBody().readAllBytes()));
 	}
 

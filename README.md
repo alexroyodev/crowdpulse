@@ -77,7 +77,7 @@ docker compose up -d                  # PostgreSQL y Kafka
 ./mvnw -pl api spring-boot:run        # API en el 8080 (otra terminal)
 ./mvnw -pl processor spring-boot:run  # processor en 127.0.0.1:8081 (otra terminal)
 curl localhost:8080/actuator/health
-curl 127.0.0.1:8081/actuator/health
+curl 127.0.0.1:8082/actuator/health  # actuator del processor: su propio puerto (ADR 0006)
 ```
 
 ### API

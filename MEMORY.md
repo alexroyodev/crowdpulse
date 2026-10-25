@@ -2,7 +2,8 @@
 
 ## Estado actual
 - Fase 3 cumplida (2026-10-22). Specs 001–005 terminadas; verificación de los CA al final
-  de cada `tasks.md`. Sin spec activa: la siguiente sería la fase 4 (observabilidad).
+  de cada `tasks.md`. Fase 4 empezada: spec 006 (métricas) aprobada (D1 puerto de gestión
+  8082, D2 se acepta) y plan aprobados; tasks.md en borrador. Trazas y dashboard, después.
 - Código: monorepo Maven; módulos `shared/` (migraciones, enums, `SensorEventMessage` v1,
   `Topics`), `api/` (valida, 422, publica; consultas), `processor/` (8081, `EventProcessor`:
   reglas de 001 y 002) y `simulator/`.
