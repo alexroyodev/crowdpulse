@@ -1,12 +1,11 @@
 # MEMORY.md — Estado de CrowdPulse
 
 ## Estado actual
-- Fase 4 en curso. Specs 001–007 terminadas; verificación de los CA al final de cada
-  `tasks.md`. 006 = métricas (Prometheus/Grafana), 007 = trazas (OpenTelemetry → Jaeger).
-  Spec activa: 008 (dashboard React): spec, plan y tareas aprobados; T01–T02 hechas, siguen
-  T03 (pantalla) y T04 (navegador, docs). D1 polling 2 s, D2 proxy de Vite, D3 Vite + Vitest.
-- Código: `shared/`, `api/`, `processor/` (8081 local, actuator en 8082), `simulator/`;
-  `observability/`: config de Prometheus y Grafana.
+- Fase 4 terminada: specs 001–008 terminadas (006 métricas, 007 trazas, 008 dashboard);
+  verificación de los CA al final de cada `tasks.md`. Sin spec activa. Siguiente, según el
+  stack de `CLAUDE.md`: integración continua (GitHub Actions); falta decidir la fase.
+- Código: `shared/`, `api/`, `processor/` (8081 local, actuator en 8082), `simulator/`,
+  `dashboard/` (npm, fuera de Maven); `observability/`: config de Prometheus y Grafana.
 
 ## Decisiones (y su porqué)
 - Maven, Java 21, Flyway, sin Lombok: código explícito y fácil de defender.
@@ -28,6 +27,8 @@
   `traceparent` en las cabeceras); atributos propios como *high cardinality* (solo al tramo, nunca
   a la métrica); Jaeger 2 en memoria; muestreo 100 %. El envío al DLT va en su propia observation
   (la de la entrega ya está cerrada en el recoverer). Logs ECS con `traceId`/`spanId`.
+- Dashboard (spec 008): *polling* cada 2 s tras cada respuesta, *proxy* de Vite (sin CORS), sin
+  librerías de UI ni de datos; si la API falla conserva los últimos datos con aviso.
 - Zona inexistente: 404 en GET, 422 en POST. Textos de la API en español (locale fijo `es`).
 - Logs con `eventId`: duplicado → DEBUG; zona desconocida, EXIT en 0 y 400 → WARN.
 - Instantes de la API en UTC con milisegundos; la BD guarda microsegundos.

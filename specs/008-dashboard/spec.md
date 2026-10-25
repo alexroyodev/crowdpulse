@@ -1,6 +1,6 @@
 # Spec 008 — Dashboard
 
-- **Estado:** Aprobada (2026-10-25); D1–D3 con las opciones recomendadas
+- **Estado:** Terminada (2026-10-25); D1–D3 con las opciones recomendadas
 - **Fase:** 4
 - **Fecha:** 2026-10-25
 - **Depende de:** [spec 007](../007-trazas/spec.md)
