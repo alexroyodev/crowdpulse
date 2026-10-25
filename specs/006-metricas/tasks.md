@@ -73,15 +73,18 @@ actualizado. Al terminar se marca `[x]`.
     (ocupación de un mapa en memoria) → «expected 13000 but was 0». `verify` del `processor`:
     49 IT + 30 unitarios en verde.
 
-- [ ] **T05 — BD caída: gauge del `processor` y 503 en la `api`** (plan §4; CA5)
+- [x] **T05 — BD caída: gauge del `processor` y 503 en la `api`** (plan §4; CA5)
   - `DatabaseOutage` registra `crowdpulse.database.outage` (1/0).
   - `DatabaseOutageIT` ampliado: 1 con PostgreSQL en pausa, 0 al volver.
   - `DatabaseDownIT` (api) ampliado: `http.server.requests` con `uri=/api/v1/events` y
     `status=503` sube.
   - **Mutación:** gauge siempre 0 → falla; restaurar.
   - **Verificación:** `verify` de los dos módulos.
+  - Hecho así (2026-10-25): el gauge se lee con `isDown()` (sincronizado, como `failed`/`succeeded`).
+    Mutación → «expected 1 but was 0». En la `api` no hay mecanismo propio que mutar (la métrica es
+    de Spring Boot); el test exige que suba exactamente 1, así que falla si la métrica no está.
 
-- [ ] **T06 — `/actuator/prometheus` y métricas de Kafka** (plan §5, §6; CA1)
+- [x] **T06 — `/actuator/prometheus` y métricas de Kafka** (plan §5, §6; CA1)
   - `PrometheusEndpointIT` en `api` y `processor` (`@AutoConfigureMetrics`): están los nombres
     del contrato de cada servicio.
   - Comprobar que el retraso del consumidor (`kafka_consumer_fetch_manager_records_lag_max`
@@ -89,6 +92,13 @@ actualizado. Al terminar se marca `[x]`.
     preguntar.**
   - **Verificación:** `verify`; manual: `curl` a los dos `/actuator/prometheus` con las apps
     en marcha.
+  - Hecho así (2026-10-25): el retraso del consumidor aparece solo, como
+    `kafka_consumer_fetch_manager_records_lag_max` (comprobado a mano en T01 y en el test); `NaN`
+    mientras no hay nada que consumir. `@AutoConfigureMetrics` está en
+    `spring-boot-micrometer-metrics-test`: el `processor` añade `spring-boot-starter-actuator-test`
+    (solo tests), igual que ya tenía la `api`. El test del `processor` publica un evento que cambia
+    el nivel de alerta y un mensaje roto, porque los contadores con etiquetas solo aparecen al usarse.
+    `verify`: `api` 44 IT, `processor` 50 IT + 30 unitarios, en verde.
 
 - [ ] **T07 — Prometheus y Grafana en compose, con el panel** (plan §7; CA6)
   - Versiones exactas (última estable en Docker Hub ese día) de `prom/prometheus` y
