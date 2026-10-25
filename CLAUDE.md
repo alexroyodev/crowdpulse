@@ -87,6 +87,8 @@ explicar cada línea en una entrevista. Simple y verificable antes que completo.
 
 ## Límites
 - ✅ Siempre: tests en verde antes de dar una tarea por terminada.
+- ✅ Siempre: los cambios llegan a `main` por rama y *pull request* con la CI en verde (regla
+  de GitHub: `main` no admite *push* directo ni forzado). Sin `gh`, el *pull request* lo abre el autor.
 - ✅ Siempre: respetar las reglas de dominio y actualizar `MEMORY.md`.
 - ⚠️ Pregunta antes: añadir una dependencia, crear un módulo o servicio nuevo,
   cambiar el contrato del evento o el esquema de la BD, modificar `compose.yaml`.

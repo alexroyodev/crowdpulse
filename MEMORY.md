@@ -4,6 +4,8 @@
 - Fase 4 terminada (specs 001–008; verificación de los CA al final de cada `tasks.md`).
   Fase 5 (integración continua) terminada con la spec 009: `.github/workflows/ci.yml`, tres
   trabajos en paralelo, ~5 min. Sin spec activa ni fase siguiente definida en la constitución.
+- `main` protegida (ruleset, 2026-10-25): *pull request* obligatorio (0 aprobaciones) con los
+  tres trabajos de la CI en verde; sin *push* forzado ni borrado.
 - Código: `shared/`, `api/`, `processor/` (8081 local, actuator en 8082), `simulator/`,
   `dashboard/` (npm, fuera de Maven); `observability/`: config de Prometheus y Grafana.
 
