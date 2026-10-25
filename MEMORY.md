@@ -3,7 +3,8 @@
 ## Estado actual
 - Fase 4 en curso. Specs 001–007 terminadas; verificación de los CA al final de cada
   `tasks.md`. 006 = métricas (Prometheus/Grafana), 007 = trazas (OpenTelemetry → Jaeger).
-  Queda el dashboard React, en su propia spec. Sin spec activa.
+  Spec activa: 008 (dashboard React), `spec.md` en borrador, pendiente de aprobación
+  (D1 polling, D2 proxy de Vite, D3 Vite + Vitest, sin librerías de UI).
 - Código: `shared/`, `api/`, `processor/` (8081 local, actuator en 8082), `simulator/`;
   `observability/`: config de Prometheus y Grafana.
 
