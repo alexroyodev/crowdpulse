@@ -35,7 +35,7 @@ actualizado. Al terminar se marca `[x]`.
     `/actuator/*` en el 8080 y el 8082 y más de 5 s, ninguna traza de actuator ni de `@Scheduled`.
     Los logs ECS ya llevan `traceId`/`spanId`. `verify`: 44 + 150 tests en verde.
 
-- [ ] **T02 — `TracingIT` de la `api`** (plan §3, §8; CA1 lado `api`, CA6, CA8)
+- [x] **T02 — `TracingIT` de la `api`** (plan §3, §8; CA1 lado `api`, CA6, CA8)
   - `TraceAttributes` (paquete `event`) y su `TraceAttributesTest` (unitario, `TestObservationRegistry`).
   - `EventController.accept` pone `crowdpulse.event.id`, `crowdpulse.zone.id` y
     `crowdpulse.event.type` como alta cardinalidad.
@@ -45,6 +45,11 @@ actualizado. Al terminar se marca `[x]`.
   - **Mutaciones:** `template.observation-enabled: false` → falla la propagación; sin el
     predicado de actuator → falla CA8; restaurar.
   - **Verificación:** `verify -pl shared,api`.
+  - Hecho así (2026-10-25): el backend «colgado» del CA6 es un `ServerSocket` que nunca acepta (el
+    sistema completa la conexión y nadie lee): los envíos OTLP fallan por timeout, no por conexión
+    rechazada, como con Jaeger en pausa. Timeout OTLP de 2 s en el test; cada `POST` tarda < 1 s.
+    Mutaciones → `template.observation-enabled: false` falla «traceparent header of the message»;
+    predicado que lo deja pasar todo → falla `actuatorRequestsAreNotTraced`. `verify`: 49 tests.
 
 - [ ] **T03 — Atributos y `outcome` en el `processor`** (plan §3, §8; CA1 lado `processor`, CA2–CA4, CA6)
   - `TraceAttributes` del `processor`; `SensorEventListener` pone los atributos tras leer el

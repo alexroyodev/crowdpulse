@@ -14,9 +14,11 @@ import jakarta.validation.Valid;
 class EventController {
 
 	private final EventPublisher publisher;
+	private final TraceAttributes trace;
 
-	EventController(EventPublisher publisher) {
+	EventController(EventPublisher publisher, TraceAttributes trace) {
 		this.publisher = publisher;
+		this.trace = trace;
 	}
 
 	/**
@@ -26,6 +28,9 @@ class EventController {
 	@PostMapping
 	@ResponseStatus(HttpStatus.ACCEPTED)
 	void accept(@Valid @RequestBody EventRequest request) {
+		// Here, not in the publisher: a 422 (unknown zone) or a 503 also carries them. A 400 never
+		// gets this far (plan 007, section 0).
+		trace.describe(request);
 		publisher.publish(request);
 	}
 
