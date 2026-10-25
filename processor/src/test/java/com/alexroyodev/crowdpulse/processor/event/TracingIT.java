@@ -31,6 +31,7 @@ import java.util.stream.IntStream;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -129,6 +130,7 @@ class TracingIT {
 
 	private final ProducerFactory<String, String> producers;
 	private final ConsumerFactory<String, String> consumers;
+	private final TopicProbe events;
 	private final TopicProbe deadLetters;
 	private final InMemorySpanExporter spans;
 	private final JsonMapper json;
@@ -140,6 +142,7 @@ class TracingIT {
 			InMemorySpanExporter spans, JsonMapper json, JdbcClient jdbc, Clock clock) {
 		this.producers = producers;
 		this.consumers = consumers;
+		this.events = new TopicProbe(consumers, Topics.SENSOR_EVENTS);
 		this.deadLetters = new TopicProbe(consumers, Topics.SENSOR_EVENTS_DLT);
 		this.spans = spans;
 		this.json = json;
@@ -259,6 +262,7 @@ class TracingIT {
 		Traceparent old = Traceparent.random();
 		SensorEventMessage message = message("NORTE", ENTRY, clock.instant());
 		publish(Topics.SENSOR_EVENTS_DLT, message, old);
+		events.mark();
 
 		String result = RestClient.create("http://127.0.0.1:" + port).post().uri("/admin/dead-letters/replay")
 				.retrieve().body(String.class);
@@ -268,6 +272,10 @@ class TracingIT {
 		SpanData replay = awaitSpan("the replay request span",
 				span -> String.valueOf(span.getAttributes().get(URL)).endsWith("/admin/dead-letters/replay"));
 		assertThat(delivery.getTraceId()).isNotEqualTo(old.traceId()).isEqualTo(replay.getTraceId());
+		// Only the replay's own traceparent. Kafka's reader takes the last one, so with the old one
+		// copied too the trace would still be right, but by the order of the headers alone.
+		ConsumerRecord<String, String> replayed = events.published().get(0);
+		assertThat(replayed.headers().headers("traceparent")).hasSize(1);
 	}
 
 	@Test
