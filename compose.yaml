@@ -16,3 +16,28 @@ services:
       # cannot discover a random one. localhost:9092 is Spring Boot's default bootstrap server and
       # what this image advertises.
       - '9092:9092'
+  prometheus:
+    # Spec 006: reads /actuator/prometheus of the api (8080) and the processor (8082) on the host.
+    image: 'prom/prometheus:v3.15.1'
+    ports:
+      # Fixed ports, like Kafka: a person opens these in the browser.
+      - '9090:9090'
+    volumes:
+      - './observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro'
+    extra_hosts:
+      # Built into Docker Desktop; this makes host.docker.internal work on Linux too.
+      - 'host.docker.internal:host-gateway'
+  grafana:
+    # Spec 006: the CrowdPulse dashboard, provisioned from observability/grafana at startup.
+    image: 'grafana/grafana:13.2.4'
+    ports:
+      - '3000:3000'
+    environment:
+      # Anyone on this machine sees the dashboard without logging in (read only).
+      - 'GF_AUTH_ANONYMOUS_ENABLED=true'
+      # Development-only default; override with the GRAFANA_ADMIN_PASSWORD environment variable.
+      - 'GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}'
+    volumes:
+      # Only these two folders: mounting the whole provisioning folder hides Grafana's own ones.
+      - './observability/grafana/datasources:/etc/grafana/provisioning/datasources:ro'
+      - './observability/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro'

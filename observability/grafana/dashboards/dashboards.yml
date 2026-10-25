@@ -1,0 +1,8 @@
+# Spec 006: load the dashboards in this folder at startup.
+apiVersion: 1
+
+providers:
+  - name: crowdpulse
+    type: file
+    options:
+      path: /etc/grafana/provisioning/dashboards

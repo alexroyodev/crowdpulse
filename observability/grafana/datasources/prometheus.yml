@@ -1,0 +1,13 @@
+# Spec 006: the Prometheus of compose.yaml, loaded by Grafana at startup.
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    jsonData:
+      # Prometheus' scrape interval (observability/prometheus.yml).
+      timeInterval: 5s

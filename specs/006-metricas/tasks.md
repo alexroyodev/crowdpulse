@@ -100,7 +100,7 @@ actualizado. Al terminar se marca `[x]`.
     el nivel de alerta y un mensaje roto, porque los contadores con etiquetas solo aparecen al usarse.
     `verify`: `api` 44 IT, `processor` 50 IT + 30 unitarios, en verde.
 
-- [ ] **T07 — Prometheus y Grafana en compose, con el panel** (plan §7; CA6)
+- [x] **T07 — Prometheus y Grafana en compose, con el panel** (plan §7; CA6)
   - Versiones exactas (última estable en Docker Hub ese día) de `prom/prometheus` y
     `grafana/grafana`.
   - `compose.yaml`; `observability/prometheus.yml` (8080 y 8082 en
@@ -112,6 +112,15 @@ actualizado. Al terminar se marca `[x]`.
   - **Verificación:** `docker compose down -v && docker compose up -d` → en
     `localhost:9090/targets` los dos destinos `up`; en `localhost:3000` el panel cargado, sin
     pasos a mano.
+  - Hecho así (2026-10-25): `prom/prometheus:v3.15.1` y `grafana/grafana:13.2.4` (últimas
+    estables en Docker Hub ese día). El panel se escribió directamente en JSON (seis paneles, uno
+    por pregunta, ventana `rate(...[30s])`), no exportado de la interfaz: sale más corto y legible.
+    Se montan solo `provisioning/datasources` y `provisioning/dashboards`; montar la carpeta entera
+    ocultaba las de Grafana (`plugins`, `alerting`) y daba errores en el log. La integración de
+    Docker Compose de Spring Boot arranca también estos dos servicios con `spring-boot:run`; no
+    son servicios que reconozca, así que no les crea conexión: se deja así. Verificado tras
+    `down -v` + `up -d`: panel y datasource cargados, sin errores en el log de Grafana; con las
+    apps en marcha, los destinos `api` y `processor` en `up` y las consultas devuelven datos.
 
 - [ ] **T08 — Demo, documentación y cierre** (CA7, CA8)
   - Demo: simulador a 100 ev/s durante 60 s, `docker compose pause postgres` 30 s a mitad →

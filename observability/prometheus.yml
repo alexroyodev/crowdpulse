@@ -1,0 +1,16 @@
+# Spec 006: Prometheus (in Docker) reads the metrics of the api and the processor, which run on
+# the host. host.docker.internal is the host as seen from a container (compose.yaml makes it work
+# outside Docker Desktop too). 5 s so the demo of a 30 s outage shows up in detail.
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: api
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['host.docker.internal:8080']
+  - job_name: processor
+    # The processor's management port (ADR 0006); its 8081 only listens on 127.0.0.1.
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['host.docker.internal:8082']
