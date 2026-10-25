@@ -27,8 +27,8 @@ están en verde en `dashboard/` y `MEMORY.md` está actualizado. Al terminar se 
   - **Mutación:** vaciar `data` al fallar → falla; restaurar.
   - **Verificación:** `npm test`, `npm run build`.
   - Hecho así (2026-10-25): `AbortSignal.any` junta la cancelación al desmontar y el límite de 3 s.
-    Mutación (`return { failing: true }` al fallar) → fallan los dos tests de fallo con datos
-    previos; restaurado. 5 tests en verde; `build` en verde.
+    Mutación (`return { failing: true }` al fallar) → falla el test de fallo con datos
+    previos («a failure keeps the last good data…»); restaurado. 5 tests y `build` en verde.
 
 - [ ] **T03 — Pantalla** (plan §6, §7; CA1, CA3, CA5, CA6)
   - `format.ts`, `StatusBar`, `ZoneCard`, `AlertList`, `App`, `styles.css`.
