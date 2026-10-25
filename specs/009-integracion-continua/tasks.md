@@ -8,12 +8,19 @@ Al terminar se marca `[x]`.
 
 ---
 
-- [ ] **T01 — Workflow y primer push** (plan §1, §2, §4; CA1, CA5, CA6, CA7)
+- [x] **T01 — Workflow y primer push** (plan §1, §2, §4; CA1, CA5, CA6, CA7)
   - `git update-index --chmod=+x mvnw`.
   - `.github/workflows/ci.yml`; insignia en el README; `CLAUDE.md`.
   - *Push* de `main`.
   - **Verificación:** la ejecución de `main` termina en verde, con los números de tests de
     local, en menos de 15 min; el fichero no usa secretos y declara `contents: read`.
+  - Hecho así (2026-10-25): `mvnw` estaba como `100644` en Git (se trabaja en Windows); ahora
+    `100755`. Primera ejecución de `main` (`9ae2242`,
+    [run 40205429555](https://github.com/alexroyodev/crowdpulse/actions/runs/40205429555)) en
+    verde: `api` 2 min 9 s, `processor` 5 min 11 s, `dashboard` 21 s; 5 min 15 s en total (en local,
+    los dos `verify` seguidos pasan de 12 min). Los logs de GitHub piden sesión incluso en un
+    repositorio público, así que los números de tests no se pudieron leer por la API: los ve el
+    autor en la ejecución.
 
 - [ ] **T02 — La CI se pone en rojo** (plan §3; CA2, CA3, CA4)
   - Rama `ci-check` con un test roto en `api` (un `*IT`), otro en `processor` y otro en el
