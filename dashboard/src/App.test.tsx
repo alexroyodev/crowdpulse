@@ -34,7 +34,9 @@ test('shows each zone with its numbers and its level in words', async () => {
   expect(within(card).getByText('17.200 / 20.000 personas')).toBeInTheDocument()
   expect(within(card).getByText('Aviso')).toBeInTheDocument()
   expect(within(screen.getByRole('article', { name: 'Fondo Sur' })).getByText('Normal')).toBeInTheDocument()
-  expect(screen.getByRole('status')).toHaveTextContent(/^Actualizado a las \d\d:\d\d:\d\d$/)
+  expect(screen.getByText(/^Actualizado a las \d\d:\d\d:\d\d$/)).toBeInTheDocument()
+  // Nothing to announce while all is well: the time changes every 2 s.
+  expect(screen.queryByRole('status')).not.toBeInTheDocument()
 })
 
 test('when the API fails it keeps the last data, says so, and recovers on its own', async () => {
@@ -44,14 +46,15 @@ test('when the API fails it keeps the last data, says so, and recovers on its ow
   await screen.findByText('86,0 %')
 
   api.up = false
-  const warning = await screen.findByText(/^Sin conexión con la API: datos de las \d\d:\d\d:\d\d$/)
-  expect(warning).toBeInTheDocument()
+  // Announced to screen readers (live region).
+  expect(await screen.findByRole('status')).toHaveTextContent(/^Sin conexión con la API: datos de las \d\d:\d\d:\d\d$/)
   expect(screen.getByText('86,0 %')).toBeInTheDocument()
 
   api.data = { zones: [{ ...norte, occupancy: 17400, occupancyPct: 87.0 }], alerts: [] }
   api.up = true
   await screen.findByText('87,0 %')
-  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent(/^Actualizado a las/))
+  await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument())
+  expect(screen.getByText(/^Actualizado a las/)).toBeInTheDocument()
 })
 
 test('without any answer yet it shows no stadium at all', async () => {

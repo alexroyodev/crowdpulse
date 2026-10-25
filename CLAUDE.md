@@ -14,7 +14,7 @@ explicar cada línea en una entrevista. Simple y verificable antes que completo.
   - `shared/` — lo que comparten `api` y `processor`: migraciones Flyway, enums y el
     mensaje `SensorEventMessage`.
   - `simulator/` — generador de eventos de sensores.
-  - `dashboard/` — React + TS (fase 4).
+  - `dashboard/` — React + TS con Vite (fase 4): solo lee la API.
   - `compose.yaml` — PostgreSQL, Kafka (puerto fijo 9092), Prometheus (9090), Grafana (3000) y
     Jaeger (UI 16686, OTLP 4318), estos tres solo en `127.0.0.1`; su configuración, en
     `observability/` (Jaeger no tiene).
@@ -121,6 +121,8 @@ explicar cada línea en una entrevista. Simple y verificable antes que completo.
   (actuator del processor en su propio puerto, abierto: ADR 0006)
 - Simulador: `./mvnw -pl simulator package` y
   `java -jar simulator/target/simulator.jar --rate=100 --duration=60s --duplicates=5`
+- Dashboard (en `dashboard/`): `npm ci`, `npm run dev` (5173, reenvía `/api` al 8080),
+  `npm test`, `npm run build` (tipos y compilación). No está en el reactor de Maven.
 
 ### Notas de Windows
 - El `java` del PATH es 17: usa `$JAVA_HOME/bin/java` (JDK 21) para el simulador.

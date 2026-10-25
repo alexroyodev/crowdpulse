@@ -4,10 +4,11 @@ Estimación en tiempo real de la ocupación por zonas de un estadio a partir de 
 sensores de entrada y salida. Proyecto de aprendizaje y portfolio: lo importante es
 poder demostrar cómo se comporta ante duplicados, desorden, concurrencia y reinicios.
 
-**Estado:** fase 4 (observabilidad) — specs [001 (ingesta)](specs/001-ingesta-mvp/spec.md),
+**Estado:** fase 4 (observabilidad y presentación) terminada — specs [001 (ingesta)](specs/001-ingesta-mvp/spec.md),
 [002 (alertas)](specs/002-alertas-umbrales/spec.md), [003 (Kafka)](specs/003-procesamiento-asincrono/spec.md),
 [004 (caídas)](specs/004-fiabilidad-ante-caidas/spec.md), [005 (remates)](specs/005-remates-de-fiabilidad/spec.md),
-[006 (métricas)](specs/006-metricas/spec.md) y [007 (trazas)](specs/007-trazas/spec.md) terminadas.
+[006 (métricas)](specs/006-metricas/spec.md), [007 (trazas)](specs/007-trazas/spec.md) y
+[008 (dashboard)](specs/008-dashboard/spec.md) terminadas.
 
 ```
 simulator ──POST /api/v1/events──► api ──clave zoneId──► Kafka ──► processor ──► PostgreSQL
@@ -26,6 +27,8 @@ simulator ──POST /api/v1/events──► api ──clave zoneId──► Kaf
   mensaje `SensorEventMessage` (versión 1).
 - **`simulator/`** — Java sin dependencias. Genera tráfico de llegada y salida de público
   y comprueba al final que la API cuadra.
+- **`dashboard/`** — React + TypeScript (Vite). La página para quien opera el estadio:
+  ocupación y nivel de cada zona en vivo y los últimos cambios de nivel (ver «Dashboard»).
 - **PostgreSQL 18** y **Apache Kafka 4.2** (KRaft); en local, con Docker Compose.
 - **Prometheus** y **Grafana**: métricas de la API y del `processor` y un panel; **Jaeger**:
   la traza de cada evento de punta a punta (ver «Observabilidad»).
@@ -71,6 +74,7 @@ fallar. Las decisiones técnicas están en [`docs/adr/`](docs/adr/) (la de Kafka
 - **JDK 21**, con `JAVA_HOME` apuntando a él (`./mvnw` lo usa).
 - **Docker** en marcha (lo necesitan los tests de integración y las aplicaciones en local).
 - El puerto **9092** libre: Kafka se publica ahí en local.
+- Para el dashboard, **Node 22.12 o posterior** (con `npm`).
 
 ## Uso
 
@@ -84,6 +88,24 @@ docker compose up -d                  # PostgreSQL, Kafka, Prometheus y Grafana
 curl localhost:8080/actuator/health
 curl 127.0.0.1:8082/actuator/health  # actuator del processor: su propio puerto (ADR 0006)
 ```
+
+### Dashboard
+
+```bash
+cd dashboard
+npm ci          # la primera vez: instala las versiones de package-lock.json
+npm run dev     # http://localhost:5173 (con la API en marcha)
+npm test        # tests (Vitest + Testing Library, sin navegador ni API)
+npm run build   # comprueba los tipos y compila
+```
+
+- Enseña lo que dan `GET /api/v1/zones` y `GET /api/v1/alerts`, y les vuelve a preguntar
+  2 s después de cada respuesta. No calcula nada: el nivel de cada zona es el que decidió el
+  `processor` (los umbrales no están en su código), con su color **y** su nombre.
+- El servidor de desarrollo reenvía `/api` a `127.0.0.1:8080`, así que la API no necesita CORS.
+- **Si la API no responde** (parada, o `503` con PostgreSQL caído), la página sigue enseñando
+  los últimos datos con el aviso «Sin conexión con la API: datos de las hh:mm:ss», y se pone al
+  día sola cuando vuelve. Nunca enseña ceros como si fueran reales.
 
 ### API
 
