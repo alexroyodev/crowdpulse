@@ -18,8 +18,7 @@
   intentos (directo si no es reintentable). `idIsGroup = false` en el listener.
 - JdbcClient (ADR 0001), `FOR UPDATE` por zona (ADR 0002), alertas 85/80 y 95/90 en la
   transacción del evento (ADR 0003). Un `EXIT` anómalo sí actualiza `lastEventAt`.
-- Configuración propia en records `@ConfigurationProperties`, no `@Value` (salvo el periodo
-  de `@Scheduled`, que lo lee la propia anotación).
+- Configuración propia en records `@ConfigurationProperties`, no `@Value` (salvo `@Scheduled`).
 - Métricas (spec 006, ADR 0006): se cuenta tras el commit (`process` devuelve `Processed`);
   gauges de zona leídos de la BD cada 5 s; peticiones de la API con la métrica HTTP de
   Spring Boot, sin contador propio. Prometheus/Grafana solo en `127.0.0.1`.
@@ -47,15 +46,11 @@
   transacción; para «fallar tras el commit» usa `afterCommit` (T09 de la spec 003).
 - Tests que arrancan el `processor` a mano (`SpringApplicationBuilder`): puertos aleatorios
   para `server.port` **y** `management.server.port`, o chocan en el 8082.
-- Con la BD caída la API tampoco acepta (valida la zona): la cola se forma en los sensores,
-  no en Kafka.
+- Con la BD caída la API tampoco acepta (valida la zona): la cola se forma en los sensores.
 - Tras mover recursos de módulo, `./mvnw clean`: `target/classes` guarda copias viejas.
-- Mutaciones: commit antes. `git checkout <fichero>` para deshacerlas borra también los cambios
-  sin commitear de ese fichero (pasó en T03 de la 007).
-- Romper tests con `sed` añadiendo un comentario al final: el `;` queda dentro del comentario y
-  falla la compilación, no el test. Compilar antes de subir (pasó en la 009).
-- Sin `gh` en este equipo: los logs y artefactos de Actions piden sesión; el estado de las
-  ejecuciones sí se lee sin ella (`api.github.com/repos/.../actions/runs`).
+- Mutaciones: commit antes (`git checkout` para deshacerlas borró cambios sin commitear, 007).
+- Al romper tests a propósito, compilar antes: con `sed` el `;` quedó dentro de un comentario (009).
+- Sin `gh`: el estado de Actions se lee sin sesión (`api.github.com/.../actions/runs`); logs no.
 - Git Bash sin `uuidgen`: `powershell.exe -NoProfile -Command '[guid]::NewGuid()'`.
 - Notas de Windows (java 17 en el PATH, `java.exe` vivo en el 8080, acentos en Git
   Bash, Docker Desktop parado): ver `CLAUDE.md` › Comandos.
