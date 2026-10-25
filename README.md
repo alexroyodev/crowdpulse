@@ -4,10 +4,10 @@ Estimación en tiempo real de la ocupación por zonas de un estadio a partir de 
 sensores de entrada y salida. Proyecto de aprendizaje y portfolio: lo importante es
 poder demostrar cómo se comporta ante duplicados, desorden, concurrencia y reinicios.
 
-**Estado:** fase 3 (fiabilidad) — specs [001 (ingesta)](specs/001-ingesta-mvp/spec.md),
-[002 (alertas)](specs/002-alertas-umbrales/spec.md), [003 (Kafka)](specs/003-procesamiento-asincrono/spec.md)
-[004 (caídas)](specs/004-fiabilidad-ante-caidas/spec.md) y [005 (remates)](specs/005-remates-de-fiabilidad/spec.md)
-terminadas.
+**Estado:** fase 4 (observabilidad) — specs [001 (ingesta)](specs/001-ingesta-mvp/spec.md),
+[002 (alertas)](specs/002-alertas-umbrales/spec.md), [003 (Kafka)](specs/003-procesamiento-asincrono/spec.md),
+[004 (caídas)](specs/004-fiabilidad-ante-caidas/spec.md), [005 (remates)](specs/005-remates-de-fiabilidad/spec.md)
+y [006 (métricas)](specs/006-metricas/spec.md) terminadas.
 
 ```
 simulator ──POST /api/v1/events──► api ──clave zoneId──► Kafka ──► processor ──► PostgreSQL
@@ -27,6 +27,8 @@ simulator ──POST /api/v1/events──► api ──clave zoneId──► Kaf
 - **`simulator/`** — Java sin dependencias. Genera tráfico de llegada y salida de público
   y comprueba al final que la API cuadra.
 - **PostgreSQL 18** y **Apache Kafka 4.2** (KRaft); en local, con Docker Compose.
+- **Prometheus** y **Grafana**: métricas de la API y del `processor` y un panel
+  (ver «Observabilidad»).
 
 ## Garantías (y el test que las demuestra)
 
@@ -73,7 +75,7 @@ fallar. Las decisiones técnicas están en [`docs/adr/`](docs/adr/) (la de Kafka
 ./mvnw test                   # tests unitarios (sin Docker)
 ./mvnw verify                 # todos, incluidos los de integración con Testcontainers
 
-docker compose up -d                  # PostgreSQL y Kafka
+docker compose up -d                  # PostgreSQL, Kafka, Prometheus y Grafana
 ./mvnw -pl api spring-boot:run        # API en el 8080 (otra terminal)
 ./mvnw -pl processor spring-boot:run  # processor en 127.0.0.1:8081 (otra terminal)
 curl localhost:8080/actuator/health
@@ -178,6 +180,47 @@ curl -X POST '127.0.0.1:8081/admin/dead-letters/replay?all=true' # todo el DLT, 
   borra del DLT; `?all=true` vuelve a pasar todo, también lo saltado.
 - El endpoint no tiene autenticación, así que el `processor` **solo escucha en
   `127.0.0.1`**. Para abrirlo: `CROWDPULSE_PROCESSOR_ADDRESS=0.0.0.0`.
+- Su actuator (`health`, `prometheus`) va aparte, en el **8082**, abierto a todas las
+  direcciones para que Prometheus (en Docker) llegue a él; solo es de lectura
+  ([ADR 0006](docs/adr/0006-puerto-de-gestion-separado-en-el-processor.md)). La primera vez,
+  el firewall de Windows puede preguntar.
+
+### Observabilidad
+
+`docker compose up -d` levanta también **Prometheus** (`http://localhost:9090`) y
+**Grafana** (`http://localhost:3000`, panel *CrowdPulse*, sin iniciar sesión), los dos solo
+en este equipo. Prometheus lee cada 5 s `/actuator/prometheus` de la API (8080) y del
+`processor` (8082) a través de `host.docker.internal`: las aplicaciones corren fuera de
+Docker. El panel y la fuente de datos se cargan solos desde `observability/grafana/`.
+
+El panel tiene una gráfica por pregunta ([spec 006](specs/006-metricas/spec.md)):
+
+| Pregunta | Consulta (simplificada) |
+|---|---|
+| 1. ¿Cuántos eventos acepta o rechaza la API? | `sum by (status) (rate(http_server_requests_seconds_count{uri="/api/v1/events"}[30s]))` — métrica HTTP de Spring Boot |
+| 2. ¿Qué hace el `processor` con ellos? | `sum by (outcome) (rate(crowdpulse_events_processed_total[30s]))` (`applied`, `duplicate`, `exit_at_zero`) y `crowdpulse_events_dead_lettered_total` por `reason` |
+| 3. ¿Cuánto tarda un evento en contar? | `histogram_quantile(0.95, sum by (le) (rate(crowdpulse_event_processing_latency_seconds_bucket[30s])))`: p95 de `processedAt − receivedAt` |
+| 4. ¿Se acumulan mensajes en Kafka? | `kafka_consumer_fetch_manager_records_lag` (ahora, por partición) y `..._records_lag_max` (máximo reciente) |
+| 5. ¿Cómo está cada zona? | `100 * crowdpulse_zone_occupancy / crowdpulse_zone_capacity`, con líneas en el 85 % y el 95 % |
+| 6. ¿Espera el `processor` a la base de datos? | `crowdpulse_database_outage` (1/0) y `crowdpulse_zone_alert_level` (0/1/2) |
+
+- `rate(x[30s])` es cuánto sube un contador por segundo, de media en los últimos 30 s.
+- `histogram_quantile` calcula un percentil a partir de las cubetas del histograma: con
+  0.95, el tiempo por debajo del cual queda el 95 % de los eventos.
+- Un evento cuenta en el `processor` solo cuando su transacción se ha confirmado: un intento
+  revertido y reintentado cuenta una vez.
+- La ocupación del panel **se lee de PostgreSQL** cada 5 s (no de la memoria del
+  `processor`), así que coincide con `GET /api/v1/zones` y sobrevive a un reinicio. Puede ir
+  hasta 5 s por detrás.
+- La latencia usa solo relojes del sistema. `receivedAt − occurredAt` (reloj del sensor) va
+  aparte, en `crowdpulse_event_sensor_delay_seconds`.
+
+**Qué se ve en una caída de PostgreSQL** (simulador a 100 ev/s, pausa de 30 s): los
+aplicados caen a 0, `crowdpulse_database_outage` pasa a 1 y la API responde algún `503`. Al
+volver, la API recibe de golpe lo que los sensores reintentaban (~160 ev/s), el p95 de la
+latencia sube a unos segundos y el `processor` se pone al día enseguida. **El retraso en
+Kafka apenas sube**: con la base de datos caída la API tampoco acepta eventos (necesita la
+base de datos para validar la zona), así que la cola se forma en los sensores, no en Kafka.
 
 ## Cómo se trabaja
 Spec-driven: cada cambio parte de `specs/NNN-nombre/` (`spec.md` → `plan.md` →

@@ -1,6 +1,6 @@
 # Tareas 006 — Métricas
 
-- **Estado:** Aprobado (2026-10-25); en curso
+- **Estado:** Terminado (2026-10-25)
 - **Spec:** [`spec.md`](spec.md) · **Plan:** [`plan.md`](plan.md)
 
 Una tarea cada vez. Está terminada cuando su verificación pasa, `./mvnw verify` está en
@@ -122,7 +122,7 @@ actualizado. Al terminar se marca `[x]`.
     `down -v` + `up -d`: panel y datasource cargados, sin errores en el log de Grafana; con las
     apps en marcha, los destinos `api` y `processor` en `up` y las consultas devuelven datos.
 
-- [ ] **T08 — Demo, documentación y cierre** (CA7, CA8)
+- [x] **T08 — Demo, documentación y cierre** (CA7, CA8)
   - Demo: simulador a 100 ev/s durante 60 s, `docker compose pause postgres` 30 s a mitad →
     capturas del panel (caída, retraso de consumo, `database_outage`, recuperación);
     ocupación del panel = `GET /zones`.
@@ -130,6 +130,42 @@ actualizado. Al terminar se marca `[x]`.
   - Verificación desde un clon limpio, por módulos.
   - Spec, plan y tareas a «Terminado»; `MEMORY.md` actualizado.
   - **Verificación:** CA7 y CA8.
+  - Hecho así (2026-10-25):
+    - Sin capturas de pantalla: no hay forma de sacarlas desde aquí sin usar tu navegador. En su
+      lugar, la demo lanzó cada 5 s contra Prometheus las mismas consultas del panel (tabla de CA7).
+    - La primera demo destapó que `records_lag_max` se queda en su pico ~1 min después de vaciarse
+      la cola: el panel 4 muestra también el retraso actual por partición (`records_lag`).
+    - Con la BD caída **la API tampoco acepta** (valida la zona contra la BD): la cola se forma en
+      los sensores, no en Kafka, y el retraso de consumo solo sube en la ráfaga de vuelta (máx.
+      280–340 en la primera demo; 48 de retraso actual en la segunda). Explicado en el README.
+    - Aviso de seguridad automático tras T07: Prometheus y Grafana no tienen autenticación →
+      publicados solo en `127.0.0.1` (comprobado: desde la IP del equipo no hay conexión).
+    - La verificación desde un clon limpio pilló que `PrometheusEndpointIT` exigía `records_lag`,
+      que aparece en Micrometer más tarde de lo que espera el test (lo añadí sin volver a
+      ejecutarlo). Se quitó del test, que conserva `records_lag_max`; corregido en su commit.
 
 ## Verificación de los criterios de aceptación
-(Se rellena al terminar.)
+
+| CA | Cómo se verifica | Resultado |
+|----|------------------|-----------|
+| CA1 | `PrometheusEndpointIT` en `api` (métrica HTTP de `POST /api/v1/events`) y en `processor` (todas las del contrato y `records_lag_max`); `ProcessorAddressIT` (8082 abierto, 8081 no, reproceso 404 en el 8082; con el servidor de gestión en `127.0.0.1` falla); manual con `curl` | ✅ |
+| CA2 | `ProcessingMetricsIT`: 10 distintos + 4 copias → `applied`+`exit_at_zero` = 11 (con el marcador), `duplicate` = 4; contando duplicados como aplicados falla (14 ≠ 10) | ✅ |
+| CA3 | `ProcessingMetricsIT`: `alerts.insert` falla una vez → reintento → cuenta 1; contando dentro de la transacción falla (2 ≠ 1) | ✅ |
+| CA4 | `ZoneMetricsIT` (gauge = `zone_occupancy`; ocupación puesta con SQL → el gauge la refleja sin eventos; desde memoria falla); demo: ocupación del panel = `GET /zones` en las 5 zonas | ✅ |
+| CA5 | `DatabaseOutageIT` (gauge 1 en la pausa, 0 al volver; siempre 0 → falla); `DatabaseDownIT` (`http.server.requests` `status=503` +1) | ✅ |
+| CA6 | `docker compose down -v && up -d`: datasource y panel cargados sin pasos a mano, sin errores en el log de Grafana; destinos `api` y `processor` en `up` | ✅ |
+| CA7 | Demo (2026-10-25), ver abajo: aplicados a 0 y `database_outage` = 1 en la pausa, 503 en la API, ráfaga de vuelta con p95 de varios segundos, recuperación; simulador OK (6 000 × 202), DLT vacío; ocupación del panel = API | ✅ (el retraso en Kafka sube poco; motivo en T08) |
+| CA8 | `git clone` local limpio + `./mvnw verify -pl shared,api` y `-pl shared,processor,simulator` (2026-10-25): 202 tests en verde (189 de antes + 13 nuevos) | ✅ |
+
+Demo de CA7 (primera ejecución; muestras cada 5 s de las consultas del panel, PostgreSQL en
+pausa de 11:03:32 a 11:04:03):
+
+| Hora | API (ev/s) | `processor` aplicados (ev/s) | p95 latencia | retraso Kafka (máx.) | BD caída |
+|------|-----------|------------------|-----|-----|----|
+| 11:03:40 | 202 = 65,5 | 64,5 | 0,3 s | 0 | 0 |
+| 11:03:57 | 202 = 21,1; 503 = 0,6 | 1,8 | — | 0 | **1** |
+| 11:04:02 | 202 = 0; 503 = 0,9 | 0 | — | 0 | **1** |
+| 11:04:14 | 202 = 96,6 | 40,8 | 5,6 s | 280 | 0 |
+| 11:04:31 | 202 = 160,3 | 143,0 | 9,8 s | 340 | 0 |
+| 11:04:53 | 0 | 8,8 | 11,3 s | 340 | 0 |
+| 11:05:27 | 0 | 0 | — | sin datos | 0 |

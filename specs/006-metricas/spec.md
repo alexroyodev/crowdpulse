@@ -1,6 +1,6 @@
 # Spec 006 — Métricas
 
-- **Estado:** Aprobada (2026-10-25), con las opciones recomendadas en D1 y D2
+- **Estado:** Terminada (2026-10-25); D1 y D2 con las opciones recomendadas
 - **Fase:** 4
 - **Fecha:** 2026-10-25
 - **Depende de:** [spec 005](../005-remates-de-fiabilidad/spec.md)
