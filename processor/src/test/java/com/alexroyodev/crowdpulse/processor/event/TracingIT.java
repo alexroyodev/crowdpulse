@@ -16,6 +16,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.time.Clock;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HexFormat;
@@ -27,6 +28,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 import org.apache.kafka.clients.consumer.Consumer;
@@ -39,11 +42,14 @@ import org.apache.kafka.common.TopicPartition;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.micrometer.tracing.test.autoconfigure.AutoConfigureTracing;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -84,6 +90,7 @@ import tools.jackson.databind.json.JsonMapper;
 		// Each export to the hung backend gives up after 2 s (10 s by default) and the next batch goes.
 		"management.opentelemetry.tracing.export.otlp.timeout=2s" })
 @AutoConfigureTracing
+@ExtendWith(OutputCaptureExtension.class)
 @Sql(scripts = "/reset-state.sql", executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "/reset-state.sql", executionPhase = AFTER_TEST_METHOD)
 class TracingIT {
@@ -95,6 +102,8 @@ class TracingIT {
 	private static final AttributeKey<String> OUTCOME = AttributeKey.stringKey(TraceAttributes.OUTCOME);
 	private static final AttributeKey<String> REASON = AttributeKey.stringKey(TraceAttributes.DEAD_LETTER_REASON);
 	private static final AttributeKey<String> URL = AttributeKey.stringKey("http.url");
+
+	private static final Pattern TRACE_ID = Pattern.compile("\"traceId\":\"([0-9a-f]{32})\"");
 
 	/** CA6: a trace backend that accepts the connection and never answers, like a paused Jaeger. */
 	private static final ServerSocket HUNG_BACKEND = hungBackend();
@@ -188,6 +197,18 @@ class TracingIT {
 	}
 
 	@Test
+	void theLogLineOfAnAnomalyCarriesTheTraceId(CapturedOutput output) {
+		// CA7: the WARN of an EXIT with the zone empty (EventProcessor), written during the delivery.
+		SensorEventMessage exit = message("ESTE", EXIT, clock.instant());
+
+		publish(Topics.SENSOR_EVENTS, exit, Traceparent.random());
+
+		SpanData delivery = awaitDelivery(exit, "exit_at_zero");
+		assertThat(traceIdOfLogLine(output, "EXIT with zone already empty", exit.eventId().toString()))
+				.isEqualTo(delivery.getTraceId());
+	}
+
+	@Test
 	void aMessageWithoutTraceparentStartsANewTrace() {
 		// CA3 (rule 2): published before spec 007, or by another producer.
 		SensorEventMessage message = message("NORTE", ENTRY, clock.instant());
@@ -257,7 +278,7 @@ class TracingIT {
 
 	@Test
 	void aReplayIsTheTraceOfItsRequestNotTheOldOne() throws ExecutionException, InterruptedException {
-		// Rule 7 (plan 007, section 5): the DLT message keeps the traceparent of its first attempt.
+		// Rule 7: the DLT message keeps the traceparent of its first attempt.
 		skipPendingDeadLetters();
 		Traceparent old = Traceparent.random();
 		SensorEventMessage message = message("NORTE", ENTRY, clock.instant());
@@ -272,8 +293,7 @@ class TracingIT {
 		SpanData replay = awaitSpan("the replay request span",
 				span -> String.valueOf(span.getAttributes().get(URL)).endsWith("/admin/dead-letters/replay"));
 		assertThat(delivery.getTraceId()).isNotEqualTo(old.traceId()).isEqualTo(replay.getTraceId());
-		// Only the replay's own traceparent. Kafka's reader takes the last one, so with the old one
-		// copied too the trace would still be right, but by the order of the headers alone.
+		// The replay copies the old traceparent, and the KafkaTemplate replaces it: one, the replay's.
 		ConsumerRecord<String, String> replayed = events.published().get(0);
 		assertThat(replayed.headers().headers("traceparent")).hasSize(1);
 	}
@@ -369,6 +389,17 @@ class TracingIT {
 	private int occupancyOf(String zoneId) {
 		return jdbc.sql("SELECT occupancy FROM zone_occupancy WHERE zone_id = :zoneId")
 				.param("zoneId", zoneId).query(Integer.class).single();
+	}
+
+	/** The traceId of the ECS log line (JSON, one per line) that contains all the given texts. */
+	private static String traceIdOfLogLine(CapturedOutput output, String... texts) {
+		String line = output.getOut().lines()
+				.filter(candidate -> Arrays.stream(texts).allMatch(candidate::contains))
+				.findFirst()
+				.orElseThrow(() -> new AssertionError("No log line with " + Arrays.toString(texts)));
+		Matcher traceId = TRACE_ID.matcher(line);
+		assertThat(traceId.find()).as("traceId in " + line).isTrue();
+		return traceId.group(1);
 	}
 
 	private static ServerSocket hungBackend() {

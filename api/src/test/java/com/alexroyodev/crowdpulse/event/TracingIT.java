@@ -9,21 +9,27 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.time.Clock;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.micrometer.tracing.test.autoconfigure.AutoConfigureTracing;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
@@ -53,6 +59,7 @@ import io.opentelemetry.sdk.trace.data.SpanData;
 		"management.opentelemetry.tracing.export.otlp.timeout=2s" })
 @AutoConfigureRestTestClient
 @AutoConfigureTracing
+@ExtendWith(OutputCaptureExtension.class)
 class TracingIT {
 
 	private static final String EVENTS = "/api/v1/events";
@@ -61,6 +68,8 @@ class TracingIT {
 	private static final AttributeKey<String> EVENT_ID = AttributeKey.stringKey(TraceAttributes.EVENT_ID);
 	private static final AttributeKey<String> ZONE_ID = AttributeKey.stringKey(TraceAttributes.ZONE_ID);
 	private static final AttributeKey<String> EVENT_TYPE = AttributeKey.stringKey(TraceAttributes.EVENT_TYPE);
+
+	private static final Pattern TRACE_ID = Pattern.compile("\"traceId\":\"([0-9a-f]{32})\"");
 
 	/** CA6: a trace backend that accepts the connection and never answers, like a paused Jaeger. */
 	private static final ServerSocket HUNG_BACKEND = hungBackend();
@@ -140,6 +149,17 @@ class TracingIT {
 	}
 
 	@Test
+	void theLogLineOfARejectionCarriesTheTraceId(CapturedOutput output) {
+		// CA7: the WARN of an unknown zone (EventPublisher), written while the request's span is open.
+		UUID eventId = UUID.randomUUID();
+		post(event(eventId, "NOPE"), 422);
+
+		SpanData request = awaitSpan("the request span of " + eventId, span -> eventId.toString().equals(span.getAttributes().get(EVENT_ID)));
+		assertThat(traceIdOfLogLine(output, "Event rejected: unknown zone", eventId.toString()))
+				.isEqualTo(request.getTraceId());
+	}
+
+	@Test
 	void anInvalidRequestIsTracedWithoutEventAttributes() {
 		// Plan 007, section 0: a 400 never reaches the controller, which is where they are set.
 		post("""
@@ -215,6 +235,17 @@ class TracingIT {
 	private static ConsumerRecord<String, String> single(List<ConsumerRecord<String, String>> records) {
 		assertThat(records).hasSize(1);
 		return records.get(0);
+	}
+
+	/** The traceId of the ECS log line (JSON, one per line) that contains all the given texts. */
+	private static String traceIdOfLogLine(CapturedOutput output, String... texts) {
+		String line = output.getOut().lines()
+				.filter(candidate -> Arrays.stream(texts).allMatch(candidate::contains))
+				.findFirst()
+				.orElseThrow(() -> new AssertionError("No log line with " + Arrays.toString(texts)));
+		Matcher traceId = TRACE_ID.matcher(line);
+		assertThat(traceId.find()).as("traceId in " + line).isTrue();
+		return traceId.group(1);
 	}
 
 	private static ServerSocket hungBackend() {
