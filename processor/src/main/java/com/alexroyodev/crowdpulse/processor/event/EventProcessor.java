@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.alexroyodev.crowdpulse.processor.alert.Alert;
 import com.alexroyodev.crowdpulse.processor.alert.AlertPolicy;
 import com.alexroyodev.crowdpulse.processor.alert.AlertRepository;
+import com.alexroyodev.crowdpulse.processor.event.Processed.Outcome;
 import com.alexroyodev.crowdpulse.processor.occupancy.LockedZone;
 import com.alexroyodev.crowdpulse.processor.occupancy.OccupancyChange;
 import com.alexroyodev.crowdpulse.processor.occupancy.OccupancyRepository;
@@ -50,10 +51,12 @@ public class EventProcessor {
 	 * repeated eventId changes nothing (spec 001 rule 2), so a redelivered message is harmless
 	 * (spec 003, rule 4).
 	 *
+	 * @return what was done, for the metrics (spec 006); when the caller gets it, the transaction
+	 *         has committed
 	 * @throws UnknownZoneException if the zone is not in the catalogue
 	 */
 	@Transactional
-	public void process(SensorEventMessage message) {
+	public Processed process(SensorEventMessage message) {
 		Instant processedAt = clock.instant();
 
 		// 1. Lock the zone row first, so two copies of the same event are serialised too.
@@ -71,7 +74,7 @@ public class EventProcessor {
 			log.atDebug().setMessage("Duplicate event ignored")
 					.addKeyValue("eventId", message.eventId())
 					.log();
-			return;
+			return Processed.duplicate(processedAt);
 		}
 
 		// 4. Pure domain decision: the alert level for the new occupancy (thresholds + hysteresis).
@@ -107,6 +110,9 @@ public class EventProcessor {
 				.addKeyValue("zoneId", message.zoneId())
 				.addKeyValue("latencyMs", processedAt.toEpochMilli() - message.receivedAt().toEpochMilli())
 				.log();
+
+		return new Processed(change.anomaly() ? Outcome.EXIT_AT_ZERO : Outcome.APPLIED, processedAt,
+				level != zone.alertLevel() ? level : null);
 	}
 
 }

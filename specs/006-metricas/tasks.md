@@ -28,7 +28,7 @@ actualizado. Al terminar se marca `[x]`.
     `UP` en el 8082, `/actuator/prometheus` responde en la IP del equipo y el 8081 no. Para
     `spring-boot:run` con `-pl` hace falta el pom padre instalado (`./mvnw -N install`).
 
-- [ ] **T02 — Contadores de eventos procesados** (plan §2; CA2, CA3)
+- [x] **T02 — Contadores de eventos procesados** (plan §2; CA2, CA3)
   - `Processed` (record con `Outcome`); `EventProcessor.process` lo devuelve;
     `SensorEventListener` llama a `EventMetrics.record` cuando `process` vuelve.
   - `EventMetrics`: `crowdpulse.events.processed`, los dos timers (histograma, 1 ms–60 s,
@@ -39,6 +39,11 @@ actualizado. Al terminar se marca `[x]`.
   - **Mutaciones:** `DUPLICATE` contado como `APPLIED` → CA2 falla; contar dentro de
     `process` antes de `alerts.insert` → CA3 falla; restaurar.
   - **Verificación:** `verify`.
+  - Hecho así (2026-10-25): mutaciones → CA2 «expected 10 but was 14»; CA3 «expected 1 but
+    was 2». La latencia también se pone a 0 si saliera negativa (relojes de `api` y `processor`).
+    El `verify` destapó un fallo de T01: `TwoInstancesIT` arranca dos `processor` a mano y los
+    dos abrían el 8082; corregido en un commit aparte (`--management.server.port=0`, también en
+    `ProcessorRestartIT`).
 
 - [ ] **T03 — Contador del DLT** (plan §2)
   - `crowdpulse.events.dead.lettered` con `reason` (`ContentFailure.TYPES` sobre la causa más

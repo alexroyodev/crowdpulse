@@ -33,12 +33,15 @@ class SensorEventListener {
 	private final JsonMapper json;
 	private final Validator validator;
 	private final DatabaseOutage outage;
+	private final EventMetrics metrics;
 
-	SensorEventListener(EventProcessor processor, JsonMapper json, Validator validator, DatabaseOutage outage) {
+	SensorEventListener(EventProcessor processor, JsonMapper json, Validator validator, DatabaseOutage outage,
+			EventMetrics metrics) {
 		this.processor = processor;
 		this.json = json;
 		this.validator = validator;
 		this.outage = outage;
+		this.metrics = metrics;
 	}
 
 	// idIsGroup = false: otherwise Spring Kafka uses the id as consumer group, overriding
@@ -52,7 +55,11 @@ class SensorEventListener {
 		if (!violations.isEmpty()) {
 			throw new ConstraintViolationException(violations);
 		}
-		processor.process(message);
+		// process() has returned, so its transaction has committed: only now is it counted (spec 006,
+		// rule 3). A crash right here would lose this count, not the event: on redelivery it is a
+		// duplicate. The metrics are not the source of truth (rule 1).
+		Processed processed = processor.process(message);
+		metrics.record(message, processed);
 		outage.succeeded();
 	}
 
