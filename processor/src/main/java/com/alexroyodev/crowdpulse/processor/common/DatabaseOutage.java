@@ -9,10 +9,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.NestedExceptionUtils;
 import org.springframework.stereotype.Component;
 
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
+
 /**
  * Remembers whether the database is down, so that an outage is logged twice (when it starts and
  * when it ends) instead of once per retry (spec 004, CA2). Processing itself waits in the Kafka
- * error handler; this class only reports.
+ * error handler; this class only reports: in the log and, since spec 006, as the gauge
+ * crowdpulse_database_outage (1 while down, 0 otherwise).
  */
 @Component
 public class DatabaseOutage {
@@ -22,8 +26,15 @@ public class DatabaseOutage {
 	private final Clock clock;
 	private Instant since;
 
-	DatabaseOutage(Clock clock) {
+	DatabaseOutage(Clock clock, MeterRegistry registry) {
 		this.clock = clock;
+		Gauge.builder("crowdpulse.database.outage", this, outage -> outage.isDown() ? 1 : 0)
+				.description("1 while the processor waits for the database to come back, 0 otherwise")
+				.register(registry);
+	}
+
+	private synchronized boolean isDown() {
+		return since != null;
 	}
 
 	/** An event could not be processed because the database is not available. */

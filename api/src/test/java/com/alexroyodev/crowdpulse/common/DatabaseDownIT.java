@@ -26,6 +26,9 @@ import org.testcontainers.utility.DockerImageName;
 
 import com.alexroyodev.crowdpulse.TestcontainersConfiguration;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+
 /**
  * Spec 004, D3 / CA7: with PostgreSQL not answering (docker pause) the API cannot read the zone
  * catalogue, so it answers 503 with ProblemDetail, never 202 and never 500; queries too. Once the
@@ -56,17 +59,20 @@ class DatabaseDownIT {
 	private final RestTestClient client;
 	private final PostgreSQLContainer postgres;
 	private final Clock clock;
+	private final MeterRegistry registry;
 
 	@Autowired
-	DatabaseDownIT(RestTestClient client, PostgreSQLContainer postgres, Clock clock) {
+	DatabaseDownIT(RestTestClient client, PostgreSQLContainer postgres, Clock clock, MeterRegistry registry) {
 		this.client = client;
 		this.postgres = postgres;
 		this.clock = clock;
+		this.registry = registry;
 	}
 
 	@Test
 	void withoutTheDatabaseTheApiAnswers503AndAcceptsAgainWhenItIsBack() throws InterruptedException {
 		post(UUID.randomUUID()).expectStatus().isAccepted();
+		long unavailableBefore = eventRequests("503");
 
 		pause();
 		try {
@@ -86,6 +92,8 @@ class DatabaseDownIT {
 		finally {
 			unpause();
 		}
+		// Spec 006, CA5: Spring Boot's own HTTP metric counts the 503 (plan 006, section 0).
+		assertThat(eventRequests("503") - unavailableBefore).isEqualTo(1);
 
 		long deadline = System.nanoTime() + Duration.ofSeconds(30).toNanos();
 		while (post(UUID.randomUUID()).returnResult().getStatus().value() != 202) {
@@ -101,6 +109,14 @@ class DatabaseDownIT {
 						{"eventId":"%s","sensorId":"NORTE-P01","zoneId":"NORTE","type":"ENTRY","occurredAt":"%s"}
 						""".formatted(eventId, clock.instant().minusSeconds(1)))
 				.exchange();
+	}
+
+	/** POST /api/v1/events requests answered with that status, from http.server.requests. */
+	private long eventRequests(String status) {
+		Timer requests = registry.find("http.server.requests")
+				.tags("method", "POST", "uri", "/api/v1/events", "status", status)
+				.timer();
+		return requests == null ? 0 : requests.count();
 	}
 
 	private void pause() {

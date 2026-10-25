@@ -42,6 +42,7 @@ import com.alexroyodev.crowdpulse.shared.EventType;
 import com.alexroyodev.crowdpulse.shared.SensorEventMessage;
 import com.alexroyodev.crowdpulse.shared.Topics;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
@@ -88,15 +89,18 @@ class DatabaseOutageIT {
 	private final TopicProbe deadLetters;
 	private final KafkaListenerEndpointRegistry listeners;
 	private final JdbcClient jdbc;
+	private final MeterRegistry registry;
 
 	@Autowired
 	DatabaseOutageIT(PostgreSQLContainer postgres, KafkaTemplate<String, String> kafka, JsonMapper json,
-			ConsumerFactory<String, String> consumers, KafkaListenerEndpointRegistry listeners, JdbcClient jdbc) {
+			ConsumerFactory<String, String> consumers, KafkaListenerEndpointRegistry listeners, JdbcClient jdbc,
+			MeterRegistry registry) {
 		this.postgres = postgres;
 		this.topic = new TopicPublisher(kafka, json);
 		this.deadLetters = new TopicProbe(consumers, Topics.SENSOR_EVENTS_DLT);
 		this.listeners = listeners;
 		this.jdbc = jdbc;
+		this.registry = registry;
 	}
 
 	@Test
@@ -118,10 +122,12 @@ class DatabaseOutageIT {
 
 		pause();
 		String healthDuringOutage;
+		double outageGaugeDuringOutage;
 		try {
 			Thread.sleep(OUTAGE.toMillis() / 2);
 			// No queries from the test while paused: they would fail too. The health check is the processor's.
 			healthDuringOutage = health();
+			outageGaugeDuringOutage = outageGauge();
 			Thread.sleep(OUTAGE.toMillis() / 2);
 		}
 		finally {
@@ -131,12 +137,19 @@ class DatabaseOutageIT {
 		// After the pause the next retry may be up to 30 s away (1, 2, 4, 8, 16, 30 s...).
 		Eventually.await("the 1 000 events processed", Duration.ofSeconds(90), () -> storedEvents() == 1_000);
 		assertThat(healthDuringOutage).contains("\"status\":\"DOWN\"");
+		// Spec 006, CA5: the outage as a metric too, back to 0 once events are processed again.
+		assertThat(outageGaugeDuringOutage).isEqualTo(1);
+		assertThat(outageGauge()).isZero();
 		assertThat(occupancyOf("NORTE")).isEqualTo(expected.get("NORTE"));
 		assertThat(occupancyOf("SUR")).isEqualTo(expected.get("SUR"));
 		assertThat(jdbc.sql("SELECT count(*) FROM sensor_event WHERE anomaly").query(Integer.class).single()).isZero();
 		assertThat(deadLetters.published()).isEmpty();
 		assertThat(output.getOut().lines().filter(line -> line.contains("Database unavailable"))).hasSize(1);
 		assertThat(output.getOut().lines().filter(line -> line.contains("Database available again"))).hasSize(1);
+	}
+
+	private double outageGauge() {
+		return registry.get("crowdpulse.database.outage").gauge().value();
 	}
 
 	private String health() {
