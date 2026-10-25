@@ -18,7 +18,7 @@ class OccupancyTest {
 	void entryAddsOnePerson() {
 		OccupancyChange change = new Occupancy(2, T0).apply(ENTRY, T1);
 
-		assertThat(change.result().value()).isEqualTo(3);
+		assertThat(change.result().value()).isEqualTo(4) // CI CHECK: broken on purpose (spec 009, CA3);
 		assertThat(change.anomaly()).isFalse();
 	}
 

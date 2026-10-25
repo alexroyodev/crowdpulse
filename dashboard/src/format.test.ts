@@ -11,7 +11,7 @@ test('times are local, with seconds', () => {
 })
 
 test('counts and percentages in Spanish', () => {
-  expect(formatCount(20000)).toBe('20.000')
+  expect(formatCount(20000)).toBe('20 000') // CI CHECK: broken on purpose (spec 009, CA3)
   expect(formatPct(61.7)).toBe('61,7 %')
   expect(formatPct(85)).toBe('85,0 %')
 })

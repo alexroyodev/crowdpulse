@@ -77,7 +77,7 @@ class EventPublishingIT {
 		post(eventId, "NORTE", "ENTRY", occurredAt);
 
 		ConsumerRecord<String, String> record = single(topic.published());
-		assertThat(record.key()).isEqualTo("NORTE");
+		assertThat(record.key()).isEqualTo("SUR") // CI CHECK: broken on purpose (spec 009, CA3);
 		assertThat(new String(record.headers().lastHeader(Topics.MESSAGE_VERSION_HEADER).value(), UTF_8))
 				.isEqualTo("1");
 		assertThat(json.readValue(record.value(), SensorEventMessage.class)).isEqualTo(new SensorEventMessage(
