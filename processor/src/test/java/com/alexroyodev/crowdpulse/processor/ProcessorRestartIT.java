@@ -169,6 +169,8 @@ class ProcessorRestartIT {
 	private static ConfigurableApplicationContext startProcessor(String... extraArguments) {
 		List<String> arguments = new ArrayList<>(List.of(
 				"--server.port=0",
+				// Random too: two processors (or one already running) would clash on 8082 (spec 006).
+				"--management.server.port=0",
 				"--spring.docker.compose.enabled=false",
 				"--spring.datasource.url=" + postgres.getJdbcUrl(),
 				"--spring.datasource.username=" + postgres.getUsername(),

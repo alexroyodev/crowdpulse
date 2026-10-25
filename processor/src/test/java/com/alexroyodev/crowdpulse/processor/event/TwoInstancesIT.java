@@ -137,6 +137,8 @@ class TwoInstancesIT {
 	private static ConfigurableApplicationContext startProcessor() {
 		return new SpringApplicationBuilder(ProcessorApplication.class).run(
 				"--server.port=0",
+				// Random too: two processors (or one already running) would clash on 8082 (spec 006).
+				"--management.server.port=0",
 				"--spring.docker.compose.enabled=false",
 				"--spring.datasource.url=" + postgres.getJdbcUrl(),
 				"--spring.datasource.username=" + postgres.getUsername(),
