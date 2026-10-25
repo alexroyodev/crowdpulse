@@ -21,11 +21,14 @@ están en verde en `dashboard/` y `MEMORY.md` está actualizado. Al terminar se 
     para comprobar los tipos de `vite.config.ts`. Favicon propio. `npm test` (1 test trivial) y
     `npm run build` en verde; `curl localhost:5173/api/v1/zones` devuelve las zonas de la API.
 
-- [ ] **T02 — Datos, frescura y actualización** (plan §3–§5; CA4, CA6)
+- [x] **T02 — Datos, frescura y actualización** (plan §3–§5; CA4, CA6)
   - `api.ts` (`fetchData`), `snapshot.ts` (`applyResult`), `usePolling.ts`.
   - `snapshot.test.ts`.
   - **Mutación:** vaciar `data` al fallar → falla; restaurar.
   - **Verificación:** `npm test`, `npm run build`.
+  - Hecho así (2026-10-25): `AbortSignal.any` junta la cancelación al desmontar y el límite de 3 s.
+    Mutación (`return { failing: true }` al fallar) → fallan los dos tests de fallo con datos
+    previos; restaurado. 5 tests en verde; `build` en verde.
 
 - [ ] **T03 — Pantalla** (plan §6, §7; CA1, CA3, CA5, CA6)
   - `format.ts`, `StatusBar`, `ZoneCard`, `AlertList`, `App`, `styles.css`.
