@@ -1,6 +1,6 @@
 # Plan 009 — Integración continua
 
-- **Estado:** Aprobado (2026-10-25, por delegación del autor: «haz lo que necesites»)
+- **Estado:** Aprobado (2026-10-25, por delegación del autor); implementado (detalles en `tasks.md`)
 - **Spec:** [`spec.md`](spec.md)
 - **Fase:** 5
 - **Fecha:** 2026-10-25

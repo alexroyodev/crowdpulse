@@ -1,6 +1,6 @@
 # Spec 009 — Integración continua
 
-- **Estado:** Aprobada (2026-10-25); D1–D4 con las opciones recomendadas; permiso para subir a `origin`
+- **Estado:** Terminada (2026-10-25); D1–D4 con las opciones recomendadas; permiso para subir a `origin`
 - **Fase:** 5
 - **Fecha:** 2026-10-25
 - **Depende de:** [spec 008](../008-dashboard/spec.md)

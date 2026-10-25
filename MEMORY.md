@@ -2,8 +2,8 @@
 
 ## Estado actual
 - Fase 4 terminada (specs 001–008; verificación de los CA al final de cada `tasks.md`).
-  Fase 5 = integración continua con GitHub Actions (enmienda del 2026-10-25). Spec activa: 009
-  (CI), `spec.md` en borrador, pendiente de aprobación (D1–D4) y de permiso para subir a `origin`.
+  Fase 5 (integración continua) terminada con la spec 009: `.github/workflows/ci.yml`, tres
+  trabajos en paralelo, ~5 min. Sin spec activa ni fase siguiente definida en la constitución.
 - Código: `shared/`, `api/`, `processor/` (8081 local, actuator en 8082), `simulator/`,
   `dashboard/` (npm, fuera de Maven); `observability/`: config de Prometheus y Grafana.
 
@@ -52,6 +52,10 @@
 - Tras mover recursos de módulo, `./mvnw clean`: `target/classes` guarda copias viejas.
 - Mutaciones: commit antes. `git checkout <fichero>` para deshacerlas borra también los cambios
   sin commitear de ese fichero (pasó en T03 de la 007).
+- Romper tests con `sed` añadiendo un comentario al final: el `;` queda dentro del comentario y
+  falla la compilación, no el test. Compilar antes de subir (pasó en la 009).
+- Sin `gh` en este equipo: los logs y artefactos de Actions piden sesión; el estado de las
+  ejecuciones sí se lee sin ella (`api.github.com/repos/.../actions/runs`).
 - Git Bash sin `uuidgen`: `powershell.exe -NoProfile -Command '[guid]::NewGuid()'`.
 - Notas de Windows (java 17 en el PATH, `java.exe` vivo en el 8080, acentos en Git
   Bash, Docker Desktop parado): ver `CLAUDE.md` › Comandos.
