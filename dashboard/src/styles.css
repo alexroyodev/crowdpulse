@@ -1,4 +1,174 @@
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --text: #1b2430;
+  --muted: #5b6573;
+  --border: #d8dee6;
+  --bar: #e3e8ee;
+  --normal: #1a7f37;
+  --normal-bg: #dafbe1;
+  --warning: #8a5a00;
+  --warning-bg: #fff1c2;
+  --critical: #b42318;
+  --critical-bg: #fee4e2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.4;
+}
+
+.page-header,
+main {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.status {
+  margin: 0;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Rule 3: impossible to miss that the data is not current. */
+.status-failing {
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.4rem;
+  background: var(--critical-bg);
+  color: var(--critical);
+  font-weight: 600;
+}
+
+.section-title {
+  margin: 1rem 0 0.75rem;
+  font-size: 1.1rem;
+}
+
+.zones {
+  display: grid;
+  /* One column on a phone, as many as fit on a wide screen; no fixed widths (CA5). */
+  grid-template-columns: repeat(auto-fill, minmax(min(16rem, 100%), 1fr));
+  gap: 0.75rem;
+}
+
+.zone {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-left-width: 0.4rem;
+  border-radius: 0.5rem;
+  background: var(--surface);
+}
+
+.zone-normal { border-left-color: var(--normal); }
+.zone-warning { border-left-color: var(--warning); }
+.zone-critical { border-left-color: var(--critical); }
+
+.zone-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.zone h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.zone-pct {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.bar {
+  height: 0.5rem;
+  border-radius: 0.25rem;
+  background: var(--bar);
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+}
+
+.zone-normal .bar-fill { background: var(--normal); }
+.zone-warning .bar-fill { background: var(--warning); }
+.zone-critical .bar-fill { background: var(--critical); }
+
+.zone-count {
+  margin: 0.5rem 0 0;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.level {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.level-normal { background: var(--normal-bg); color: var(--normal); }
+.level-warning { background: var(--warning-bg); color: var(--warning); }
+.level-critical { background: var(--critical-bg); color: var(--critical); }
+
+.alerts {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+}
+
+.alert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 1rem;
+  padding: 0.6rem 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.alert:first-child {
+  border-top: none;
+}
+
+.alert time,
+.alert-count {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.alert-zone {
+  font-weight: 600;
+}
+
+.empty {
+  color: var(--muted);
 }
