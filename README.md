@@ -6,8 +6,8 @@ poder demostrar cómo se comporta ante duplicados, desorden, concurrencia y rein
 
 **Estado:** fase 4 (observabilidad) — specs [001 (ingesta)](specs/001-ingesta-mvp/spec.md),
 [002 (alertas)](specs/002-alertas-umbrales/spec.md), [003 (Kafka)](specs/003-procesamiento-asincrono/spec.md),
-[004 (caídas)](specs/004-fiabilidad-ante-caidas/spec.md), [005 (remates)](specs/005-remates-de-fiabilidad/spec.md)
-y [006 (métricas)](specs/006-metricas/spec.md) terminadas.
+[004 (caídas)](specs/004-fiabilidad-ante-caidas/spec.md), [005 (remates)](specs/005-remates-de-fiabilidad/spec.md),
+[006 (métricas)](specs/006-metricas/spec.md) y [007 (trazas)](specs/007-trazas/spec.md) terminadas.
 
 ```
 simulator ──POST /api/v1/events──► api ──clave zoneId──► Kafka ──► processor ──► PostgreSQL
@@ -27,8 +27,8 @@ simulator ──POST /api/v1/events──► api ──clave zoneId──► Kaf
 - **`simulator/`** — Java sin dependencias. Genera tráfico de llegada y salida de público
   y comprueba al final que la API cuadra.
 - **PostgreSQL 18** y **Apache Kafka 4.2** (KRaft); en local, con Docker Compose.
-- **Prometheus** y **Grafana**: métricas de la API y del `processor` y un panel
-  (ver «Observabilidad»).
+- **Prometheus** y **Grafana**: métricas de la API y del `processor` y un panel; **Jaeger**:
+  la traza de cada evento de punta a punta (ver «Observabilidad»).
 
 ## Garantías (y el test que las demuestra)
 
@@ -57,11 +57,14 @@ simulator ──POST /api/v1/events──► api ──clave zoneId──► Kaf
 | Alerta al llegar al 85 % (`WARNING`) y al 95 % (`CRITICAL`), con histéresis de 5 puntos: oscilar en el umbral genera un solo cambio | `AlertPolicyTest`, `AlertProcessingIT` |
 | Evento, ocupación y cambio de nivel se guardan juntos o ninguno | `AlertAtomicityIT` |
 | Eventos concurrentes que cruzan un umbral lo registran una sola vez | `ConcurrentAlertIT` |
+| El recorrido de un evento (API → Kafka → `processor`) es una sola traza, con un tramo por intento | `TracingIT` (api y processor) |
+| Sin backend de trazas (o colgado), los eventos se aceptan y se procesan igual | `TracingIT` (api y processor) |
 
 Cada test de garantía se ha validado una vez quitando el mecanismo que la da y viéndolo
 fallar. Las decisiones técnicas están en [`docs/adr/`](docs/adr/) (la de Kafka, en el
 [ADR 0004](docs/adr/0004-kafka-entre-api-y-processor.md); la de las caídas, en el
-[ADR 0005](docs/adr/0005-fallo-de-infraestructura-frente-a-mensaje-malo.md)) y los principios del proyecto en
+[ADR 0005](docs/adr/0005-fallo-de-infraestructura-frente-a-mensaje-malo.md); la de las trazas, en el
+[ADR 0007](docs/adr/0007-trazas-con-opentelemetry-y-jaeger.md)) y los principios del proyecto en
 [`docs/constitution.md`](docs/constitution.md).
 
 ## Requisitos
@@ -221,6 +224,30 @@ volver, la API recibe de golpe lo que los sensores reintentaban (~160 ev/s), el 
 latencia sube a unos segundos y el `processor` se pone al día enseguida. **El retraso en
 Kafka apenas sube**: con la base de datos caída la API tampoco acepta eventos (necesita la
 base de datos para validar la zona), así que la cola se forma en los sensores, no en Kafka.
+
+#### Trazas ([spec 007](specs/007-trazas/spec.md))
+
+**Jaeger** (`http://localhost:16686`, solo en este equipo) recibe por OTLP (`127.0.0.1:4318`)
+las trazas de la API y del `processor`. Cada evento aceptado deja **una** traza:
+
+```
+http post /api/v1/events                 (api)        crowdpulse.event.id, zone.id, event.type; status
+└─ crowdpulse.sensor-events send         (api)        el contexto viaja en la cabecera traceparent
+   └─ crowdpulse.sensor-events process   (processor)  uno por intento; crowdpulse.outcome =
+      │                                               applied | duplicate | exit_at_zero
+      └─ crowdpulse.dead.letter          (processor)  solo si va al DLT: outcome=dead_lettered, reason
+         └─ crowdpulse.sensor-events.dlt send
+```
+
+- **Buscar un evento:** en Jaeger, *Service* `crowdpulse-api` o `crowdpulse-processor` y en
+  *Tags* `crowdpulse.event.id=<eventId>`. El `eventId` sale en los logs; cada línea de log
+  escrita durante el recorrido lleva también su `traceId`, que se puede pegar en la búsqueda.
+- Un intento fallido (p. ej. la base de datos caída) es un tramo con error en la misma traza;
+  el bueno lleva el `outcome`. Un duplicado o un reproceso del DLT es otra traza.
+- Si Jaeger no está o no responde, los tramos se pierden y los eventos no: se envían desde un
+  hilo aparte. `/actuator/*` no genera trazas.
+- Se guardan todas las trazas; `CROWDPULSE_TRACING_SAMPLING=0.1` guardaría una de cada diez.
+  Jaeger las tiene en memoria: se pierden al pararlo.
 
 ## Cómo se trabaja
 Spec-driven: cada cambio parte de `specs/NNN-nombre/` (`spec.md` → `plan.md` →

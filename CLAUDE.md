@@ -15,8 +15,9 @@ explicar cada línea en una entrevista. Simple y verificable antes que completo.
     mensaje `SensorEventMessage`.
   - `simulator/` — generador de eventos de sensores.
   - `dashboard/` — React + TS (fase 4).
-  - `compose.yaml` — PostgreSQL, Kafka (puerto fijo 9092), Prometheus (9090) y Grafana (3000),
-    estos dos solo en `127.0.0.1`; su configuración, en `observability/`.
+  - `compose.yaml` — PostgreSQL, Kafka (puerto fijo 9092), Prometheus (9090), Grafana (3000) y
+    Jaeger (UI 16686, OTLP 4318), estos tres solo en `127.0.0.1`; su configuración, en
+    `observability/` (Jaeger no tiene).
   - `docs/` — `constitution.md`, `architecture.md`, ADRs en `docs/adr/`.
   - `specs/NNN-nombre/` — `spec.md`, `plan.md`, `tasks.md`.
 - Paquetes por funcionalidad (`event`, `occupancy`, `alert`, `zone`), no por capa.
