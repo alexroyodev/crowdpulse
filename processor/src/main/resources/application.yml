@@ -30,6 +30,11 @@ spring:
     listener:
       # Commit each message's offset right after its database transaction (spec 003, rule 4).
       ack-mode: record
+      # Spec 007: a span for each delivery of a message, child of the one in its traceparent header.
+      observation-enabled: true
+    template:
+      # Spec 007: dead-letter publishes (and replays) get their span and traceparent header.
+      observation-enabled: true
 
 server:
   # The API listens on 8080.
@@ -41,6 +46,23 @@ server:
     include-stacktrace: never
 
 management:
+  tracing:
+    sampling:
+      # Spec 007: keep every trace locally (Spring Boot's default is 0.1); CROWDPULSE_TRACING_SAMPLING
+      # lowers it without touching code.
+      probability: ${CROWDPULSE_TRACING_SAMPLING:1.0}
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          # Jaeger of compose.yaml. 127.0.0.1, not localhost: on Windows localhost may go to ::1,
+          # and compose publishes Jaeger only on 127.0.0.1. Spans are sent from a background
+          # thread: if nobody listens, they are dropped and the events are not affected (rule 1).
+          endpoint: ${CROWDPULSE_OTLP_ENDPOINT:http://127.0.0.1:4318/v1/traces}
+  observations:
+    enable:
+      # Spec 007, rule 6: the zone gauges refresh every 5 s (spec 006); a trace each time is noise.
+      tasks.scheduled: false
   server:
     # Spec 006 (D1, ADR 0006): actuator gets its own server, which serves only health and prometheus,
     # so it can be open to every address: Prometheus runs in Docker and cannot reach 127.0.0.1 on

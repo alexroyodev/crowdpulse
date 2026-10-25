@@ -22,6 +22,10 @@ spring:
     fallback-to-system-locale: false
   kafka:
     # Bootstrap servers: Spring Boot's default, localhost:9092, as published by compose.yaml.
+    template:
+      # Spec 007: a span for each publish, and the trace context in the traceparent header, so the
+      # processor continues the same trace.
+      observation-enabled: true
     producer:
       # 202 only when the broker has stored the event (spec 003, rule 3).
       acks: all
@@ -36,6 +40,19 @@ server:
     include-stacktrace: never
 
 management:
+  tracing:
+    sampling:
+      # Spec 007: keep every trace locally (Spring Boot's default is 0.1); CROWDPULSE_TRACING_SAMPLING
+      # lowers it without touching code.
+      probability: ${CROWDPULSE_TRACING_SAMPLING:1.0}
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          # Jaeger of compose.yaml. 127.0.0.1, not localhost: on Windows localhost may go to ::1,
+          # and compose publishes Jaeger only on 127.0.0.1. Spans are sent from a background
+          # thread: if nobody listens, they are dropped and the events are not affected (rule 1).
+          endpoint: ${CROWDPULSE_OTLP_ENDPOINT:http://127.0.0.1:4318/v1/traces}
   endpoints:
     web:
       exposure:

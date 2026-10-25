@@ -2,8 +2,10 @@
 
 ## Estado actual
 - Fase 4 en curso. Specs 001–006 terminadas; verificación de los CA al final de cada
-  `tasks.md`. 006 = métricas (Prometheus/Grafana). Siguen trazas (OpenTelemetry) y
-  dashboard React, cada una en su spec. Sin spec activa.
+  `tasks.md`. 006 = métricas (Prometheus/Grafana). Spec activa: 007 (trazas,
+  OpenTelemetry): `spec.md` aprobada (D1 Jaeger, D2 sin tramos SQL, cabecera `traceparent`
+  sin versionar el mensaje); `plan.md` aprobado; `tasks.md` en borrador, pendiente de aprobación. Después,
+  dashboard React en su propia spec.
 - Código: monorepo Maven; módulos `shared/` (migraciones, enums, `SensorEventMessage` v1,
   `Topics`), `api/` (valida, 422, publica; consultas), `processor/` (8081 local, actuator en
   8082; `EventProcessor`: reglas de 001 y 002) y `simulator/`. `observability/`: config de

@@ -43,3 +43,12 @@ services:
       # Only these two folders: mounting the whole provisioning folder hides Grafana's own ones.
       - './observability/grafana/datasources:/etc/grafana/provisioning/datasources:ro'
       - './observability/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro'
+  jaeger:
+    # Spec 007 (D1): receives the traces of the api and the processor by OTLP; UI with search by
+    # attribute (crowdpulse.event.id). In-memory storage: the traces are gone when it stops.
+    image: 'jaegertracing/jaeger:2.22.0'
+    ports:
+      # Only on this machine, like Prometheus and Grafana: no authentication. The apps run on the
+      # host, so 127.0.0.1 is enough for them too.
+      - '127.0.0.1:16686:16686' # UI
+      - '127.0.0.1:4318:4318' # OTLP over HTTP (Spring Boot's default transport)
