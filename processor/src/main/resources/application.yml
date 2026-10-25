@@ -66,3 +66,6 @@ crowdpulse:
     critical:
       enter-pct: 95
       exit-pct: 90
+  metrics:
+    # Spec 006: how often the zone gauges are read from the database (ZoneMetrics).
+    zone-refresh: 5s

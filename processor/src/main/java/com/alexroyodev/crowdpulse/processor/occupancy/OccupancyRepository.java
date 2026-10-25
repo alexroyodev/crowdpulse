@@ -3,6 +3,7 @@ package com.alexroyodev.crowdpulse.processor.occupancy;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -57,6 +58,19 @@ public class OccupancyRepository {
 				.param("alertLevel", alertLevel.name())
 				.param("zoneId", zoneId)
 				.update();
+	}
+
+	/** Every zone, without locking: only for the metrics (spec 006), which may lag a little. */
+	public List<ZoneState> findAll() {
+		return jdbc.sql("""
+				SELECT o.zone_id, o.occupancy, z.capacity, o.alert_level
+				FROM zone_occupancy o
+				JOIN zone z ON z.zone_id = o.zone_id
+				ORDER BY o.zone_id
+				""")
+				.query((rs, rowNum) -> new ZoneState(rs.getString("zone_id"), rs.getInt("occupancy"),
+						rs.getInt("capacity"), AlertLevel.valueOf(rs.getString("alert_level"))))
+				.list();
 	}
 
 	private static OffsetDateTime toUtc(Instant instant) {

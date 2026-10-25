@@ -56,7 +56,7 @@ actualizado. Al terminar se marca `[x]`.
     `ContentFailure.isContentFailure`, la misma función que el reproceso. Mutación → «expected 1
     but was 0».
 
-- [ ] **T04 — Gauges de zona leídos de la BD** (plan §3; CA4)
+- [x] **T04 — Gauges de zona leídos de la BD** (plan §3; CA4)
   - `MetricsProperties` (`crowdpulse.metrics.zone-refresh: 5s`), `ZoneMetrics` con
     `refresh()` (tres `MultiGauge`), `@Scheduled` y primer refresco al arrancar;
     `@EnableScheduling`.
@@ -66,6 +66,12 @@ actualizado. Al terminar se marca `[x]`.
   - **Mutación:** gauge alimentado en memoria desde `EventProcessor` → falla el segundo
     test; restaurar.
   - **Verificación:** `verify`.
+  - Hecho así (2026-10-25): sin record `MetricsProperties`; el periodo va en
+    `@Scheduled(fixedDelayString = "${crowdpulse.metrics.zone-refresh}")`, porque la anotación es
+    lo único que lo lee y con un record haría falta SpEL (acepta `5s`). `@EnableScheduling` en
+    `ProcessorApplication`. Lectura con `OccupancyRepository.findAll()` (sin bloqueo). Mutación
+    (ocupación de un mapa en memoria) → «expected 13000 but was 0». `verify` del `processor`:
+    49 IT + 30 unitarios en verde.
 
 - [ ] **T05 — BD caída: gauge del `processor` y 503 en la `api`** (plan §4; CA5)
   - `DatabaseOutage` registra `crowdpulse.database.outage` (1/0).
