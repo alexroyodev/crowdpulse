@@ -1,6 +1,6 @@
 # Spec 007 — Trazas
 
-- **Estado:** Aprobada (2026-10-25); D1 y D2 con las opciones recomendadas; ajustes del plan,
+- **Estado:** Terminada (2026-10-25); D1 y D2 con las opciones recomendadas; ajustes del plan,
   sección 0
 - **Fase:** 4
 - **Fecha:** 2026-10-25

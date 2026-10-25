@@ -1,6 +1,6 @@
 # Plan 007 — Trazas
 
-- **Estado:** Aprobado (2026-10-25)
+- **Estado:** Aprobado (2026-10-25); implementado (desviaciones en `tasks.md`, «Hecho así»)
 - **Spec:** [`spec.md`](spec.md)
 - **Fase:** 4
 - **Fecha:** 2026-10-25

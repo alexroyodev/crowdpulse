@@ -1,6 +1,6 @@
 # Tareas 007 — Trazas
 
-- **Estado:** Aprobado (2026-10-25); en curso
+- **Estado:** Terminado (2026-10-25)
 - **Spec:** [`spec.md`](spec.md) · **Plan:** [`plan.md`](plan.md)
 
 Una tarea cada vez. Está terminada cuando su verificación pasa, `./mvnw verify` está en
@@ -51,7 +51,7 @@ actualizado. Al terminar se marca `[x]`.
     Mutaciones → `template.observation-enabled: false` falla «traceparent header of the message»;
     predicado que lo deja pasar todo → falla `actuatorRequestsAreNotTraced`. `verify`: 49 tests.
 
-- [ ] **T03 — Atributos y `outcome` en el `processor`** (plan §3, §8; CA1 lado `processor`, CA2–CA4, CA6)
+- [x] **T03 — Atributos y `outcome` en el `processor`** (plan §3, §8; CA1 lado `processor`, CA2–CA4, CA6)
   - `TraceAttributes` del `processor`; `SensorEventListener` pone los atributos tras leer el
     JSON y `crowdpulse.outcome` cuando `process` vuelve.
   - `TracingIT` del `processor`: continúa una `traceparent` conocida; `applied`, `duplicate`,
@@ -61,8 +61,14 @@ actualizado. Al terminar se marca `[x]`.
   - **Mutaciones:** `listener.observation-enabled: false` → falla CA1; `outcome` antes de
     `process` → falla CA4; restaurar.
   - **Verificación:** `verify -pl shared,processor,simulator`.
+  - Hecho así (2026-10-25): un `TraceAttributesTest` también en el `processor`. Mutaciones →
+    `listener.observation-enabled: false`: fallan 6 de 7 (no hay tramo de entrega); `outcome`
+    antes de `process` → falla CA4 en `hasSize(2)` (el intento revertido ya lleva `applied` y se
+    toma por el bueno). **Error mío al deshacer las mutaciones:** `git checkout <fichero>` sobre
+    ficheros sin commitear devolvió `SensorEventListener` y `DeadLetterReplayer` a su versión del
+    último commit; se rehicieron y, desde entonces, commit antes de cada mutación.
 
-- [ ] **T04 — DLT y reproceso** (plan §4, §5; CA5, regla 7)
+- [x] **T04 — DLT y reproceso** (plan §4, §5; CA5, regla 7)
   - Comprobar si la observation del listener sigue abierta cuando se llama al recoverer. Si sí:
     `outcome=dead_lettered` y `dead_letter.reason` en ella. Si no: observation propia
     `crowdpulse.dead_letter` con el contexto de la `traceparent` del mensaje. Anotar cuál.
@@ -73,34 +79,60 @@ actualizado. Al terminar se marca `[x]`.
   - **Mutación:** copiar `traceparent` en `republish` → debería fallar el test del reproceso;
     si no falla, anotar por qué (plan §8) y restaurar.
   - **Verificación:** `verify -pl shared,processor,simulator`.
+  - Hecho así (2026-10-25): **la observation de la entrega ya está cerrada** cuando el gestor de
+    errores llama al recoverer (su contexto sigue activo: la publicación al DLT colgaba de ella,
+    pero sin los atributos). Se usó la alternativa del plan: `TraceAttributes.deadLettered` abre la
+    observation `crowdpulse.dead.letter` (con `outcome` y `reason`) alrededor de la publicación,
+    sin leer la cabecera: el contexto ya es el bueno. Como toda observation, es también un timer
+    (`crowdpulse_dead_letter_seconds`). **Reproceso:** el filtro de cabeceras de la sección 5 se
+    probó y se quitó: el `KafkaTemplate` **sustituye** la `traceparent` copiada por la suya (con el
+    filtro quitado, el mensaje republicado sigue teniendo una sola), así que no hacía nada
+    (principio 1). El test comprueba la traza del reproceso y que hay una sola `traceparent`.
 
-- [ ] **T05 — Logs con `traceId`** (plan §6; CA7)
+- [x] **T05 — Logs con `traceId`** (plan §6; CA7)
   - `TracingIT` de los dos (`OutputCaptureExtension`): la línea del rechazo por zona
     desconocida (`api`) y la del duplicado (`processor`) llevan el `traceId` de su tramo.
   - Comprobar si el `WARN` de `DatabaseOutage` lleva `traceId` y anotarlo (no se exige).
   - **Mutación:** escribir el log del duplicado desde otro hilo sin contexto (o comprobar
     contra un `traceId` distinto) → falla; restaurar.
   - **Verificación:** `verify` por módulos.
+  - Hecho así (2026-10-25): se comprueba el `WARN` de una zona desconocida (`api`) y el del `EXIT`
+    con la zona vacía (`processor`); el duplicado se registra en `DEBUG` y no sale en la salida.
+    Mutación → `MDC.remove("traceId")` antes del `WARN` → falla «traceId in …». El `WARN` de
+    `DatabaseOutage` lleva el `traceId` de la entrega que falla (y el de vuelta, el de la que
+    funciona): desde ese log se llega a la traza del evento que esperó. `verify`: 50 + 161 tests.
 
-- [ ] **T06 — Demo, documentación y cierre** (plan §9; CA9–CA11)
+- [x] **T06 — Demo, documentación y cierre** (plan §9; CA9–CA11)
   - Demo del plan §9 (simulador 100 ev/s, 60 s, `--duplicates=5`, PostgreSQL en pausa 30 s;
     luego Jaeger en pausa), con capturas y tiempos anotados aquí.
   - ADR 0007; README («Observabilidad»: Jaeger, búsqueda por `eventId`, muestreo);
     `CLAUDE.md` (Jaeger en `compose.yaml`); `MEMORY.md`.
   - **Verificación:** `git clone` local limpio y `./mvnw verify` por módulos.
+  - Hecho así (2026-10-25), demo con el simulador (100 ev/s, 60 s, `--duplicates=5`) y
+    PostgreSQL en pausa de 11:46:52 a 11:47:23 UTC: 6000 × 202, 26 reintentos por 503, la API
+    cuadra 17,3 s después del último envío. En Jaeger, 178 tramos `duplicate` y 4 intentos con
+    error en el intervalo revisado. Traza `004a231d…` ([captura](demo-espera-bd.png)): aceptado en
+    314 ms; intentos con error a +18,6 s (5,1 s) y +30,9 s (5,0 s); aplicado a +45,1 s, 45,3 s en
+    total. El duplicado `1401d492…`: búsqueda por `crowdpulse.event.id` → 2 trazas, la del envío y
+    la del duplicado, que se procesó 41,8 s después porque su partición esperaba a la BD
+    ([captura](demo-busqueda-duplicado.png)). Luego `docker compose pause jaeger` y otro simulador
+    a 100 ev/s, 30 s: 3000 × 202, sin reintentos, la API cuadra en 0,5 s, nada en el DLT; los
+    envíos de tramos fallan por timeout. Consola del navegador sin errores. La API de consulta
+    de Jaeger 2 no filtra por atributo con `query.attributes[...]` (devuelve todo); la búsqueda
+    se hizo en la interfaz.
 
 ## Verificación de los criterios de aceptación
 
 | CA | Cómo se verifica | Resultado |
 |----|------------------|-----------|
-| CA1 | `TracingIT` `api` (cabecera con su `traceId`) + `TracingIT` `processor` (continúa la cabecera); demo en Jaeger | |
-| CA2 | `TracingIT` `processor`: los tres `outcome` | |
-| CA3 | `TracingIT` `processor`: mensaje sin `traceparent` | |
-| CA4 | `TracingIT` `processor`: fallo en el primer intento; demo con PostgreSQL en pausa | |
-| CA5 | `TracingIT` `processor`: zona inexistente → DLT en la misma traza | |
-| CA6 | `TracingIT` de los dos con OTLP en un puerto cerrado; demo con Jaeger en pausa | |
-| CA7 | `TracingIT` de los dos con `OutputCaptureExtension` | |
-| CA8 | `TracingIT` `api`; manual en el `processor` (8082) | |
-| CA9 | Manual: `docker compose up -d` y búsqueda de un `eventId` de los logs | |
-| CA10 | Demo (T06) | |
-| CA11 | Clon limpio + `verify` por módulos | |
+| CA1 | `TracingIT` `api` (cabecera con su `traceId`; sin observation en la plantilla falla) + `TracingIT` `processor` (continúa la cabecera; sin observation en el listener falla); demo: una traza `api` → `processor` en Jaeger | ✅
+| CA2 | `TracingIT` `processor`: `exit_at_zero`, `applied`, `duplicate` | ✅
+| CA3 | `TracingIT` `processor`: sin `traceparent` → traza nueva (padre inválido) con el `eventId` | ✅
+| CA4 | `TracingIT` `processor`: dos tramos en la misma traza, el revertido con error y sin `outcome` (`outcome` antes de `process` → falla); demo: dos intentos con error y luego `applied` | ✅
+| CA5 | `TracingIT` `processor`: entrega con error → `crowdpulse.dead.letter` (`dead_lettered`, `other`) → envío al DLT, en la traza de la cabecera | ✅
+| CA6 | `TracingIT` de los dos con un backend OTLP que nunca responde (cada `POST` < 1 s; 20 eventos aplicados, DLT vacío); demo con Jaeger en pausa | ✅
+| CA7 | `TracingIT` de los dos con `OutputCaptureExtension` (`MDC.remove` → falla) | ✅
+| CA8 | `TracingIT` `api` (sin el predicado falla); manual en el 8080 y el 8082 (T01) | ✅
+| CA9 | Manual: `docker compose up -d`; traza abierta desde el `traceId` de un log y búsqueda por `crowdpulse.event.id` en la interfaz | ✅
+| CA10 | Demo (T06) | ✅
+| CA11 | `git clone` local limpio + `./mvnw verify -pl shared,api` y `-pl shared,processor,simulator` (2026-10-25): 211 tests en verde (194 de antes + 17 nuevos) | ✅ |
