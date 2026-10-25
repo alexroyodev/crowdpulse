@@ -30,12 +30,17 @@ están en verde en `dashboard/` y `MEMORY.md` está actualizado. Al terminar se 
     Mutación (`return { failing: true }` al fallar) → falla el test de fallo con datos
     previos («a failure keeps the last good data…»); restaurado. 5 tests y `build` en verde.
 
-- [ ] **T03 — Pantalla** (plan §6, §7; CA1, CA3, CA5, CA6)
+- [x] **T03 — Pantalla** (plan §6, §7; CA1, CA3, CA5, CA6)
   - `format.ts`, `StatusBar`, `ZoneCard`, `AlertList`, `App`, `styles.css`.
   - `format.test.ts` y `App.test.tsx` (zonas, nivel en texto, `503` con aviso, recuperación,
     lista de cambios).
   - **Mutación:** la del T02, ahora también contra `App.test.tsx`; restaurar.
   - **Verificación:** `npm test`, `npm run build`.
+  - Hecho así (2026-10-25): `LevelBadge` aparte (lo usan la tarjeta y la lista). `App` recibe
+    `load` e `intervalMs` para los tests (por defecto `fetchData` y 2 s). Sin `globals` en Vitest,
+    Testing Library no desmonta entre tests: `afterEach(cleanup)` en `test-setup.ts`. En español,
+    `Intl` no separa los miles con 4 cifras (1500), sí con 5 (20.000). Mutación del T02 → fallan
+    `snapshot.test.ts` y el test del `503` de `App.test.tsx`; restaurado. 12 tests en verde.
 
 - [ ] **T04 — Navegador, documentación y cierre** (plan §8, §9; CA1–CA8)
   - Verificación con el MCP de Chrome DevTools (plan §8), capturas aquí.
