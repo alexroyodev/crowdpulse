@@ -18,6 +18,7 @@ import org.springframework.util.backoff.ExponentialBackOff;
 import org.springframework.util.backoff.FixedBackOff;
 
 import com.alexroyodev.crowdpulse.processor.event.ContentFailure;
+import com.alexroyodev.crowdpulse.processor.event.TraceAttributes;
 import com.alexroyodev.crowdpulse.processor.event.UnknownZoneException;
 import com.alexroyodev.crowdpulse.shared.DatabaseUnavailable;
 import com.alexroyodev.crowdpulse.shared.Topics;
@@ -57,7 +58,7 @@ class KafkaConfig {
 	 */
 	@Bean
 	DefaultErrorHandler errorHandler(KafkaTemplate<String, String> template, JsonMapper json, DatabaseOutage outage,
-			MeterRegistry registry) {
+			MeterRegistry registry, TraceAttributes trace) {
 		DeadLetterPublishingRecoverer deadLetter = new DeadLetterPublishingRecoverer(template,
 				// Negative partition: Kafka chooses it from the key.
 				(record, ex) -> new TopicPartition(Topics.SENSOR_EVENTS_DLT, -1));
@@ -71,8 +72,10 @@ class KafkaConfig {
 					.addKeyValue("cause", NestedExceptionUtils.getMostSpecificCause(ex).toString())
 					.setCause(ex)
 					.log();
-			registry.counter("crowdpulse.events.dead.lettered", "reason", deadLetterReason(ex)).increment();
-			deadLetter.accept(record, ex);
+			String reason = deadLetterReason(ex);
+			registry.counter("crowdpulse.events.dead.lettered", "reason", reason).increment();
+			// Spec 007: the publish in a span that says so, in the trace of the event.
+			trace.deadLettered(reason, () -> deadLetter.accept(record, ex));
 		};
 		// 3 attempts in total, 1 s apart, for failures that may go away (e.g. the database for a moment).
 		DefaultErrorHandler handler = new DefaultErrorHandler(loggingRecoverer, new FixedBackOff(1000L, 2L));

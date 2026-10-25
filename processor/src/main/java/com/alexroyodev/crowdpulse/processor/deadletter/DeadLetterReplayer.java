@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.kafka.clients.consumer.Consumer;
@@ -41,6 +42,11 @@ public class DeadLetterReplayer {
 
 	/** Headers Spring Kafka adds when dead-lettering (original topic, exception...): not part of the event. */
 	private static final String DEAD_LETTER_HEADERS_PREFIX = "kafka_dlt-";
+	/**
+	 * W3C Trace Context of the first attempt (spec 007, rule 7): the replay is its own trace, whose
+	 * traceparent the KafkaTemplate adds. Copying the old one would leave two in the message.
+	 */
+	private static final Set<String> TRACE_HEADERS = Set.of("traceparent", "tracestate", "baggage");
 
 	private static final Duration MAX_DURATION = Duration.ofSeconds(60);
 
@@ -120,11 +126,11 @@ public class DeadLetterReplayer {
 		return cause == null ? null : new String(cause.value(), StandardCharsets.UTF_8);
 	}
 
-	/** Same key, value and headers as the original event; without the dead-letter headers. */
+	/** Same key, value and headers as the original event; without the dead-letter or trace headers. */
 	private void republish(ConsumerRecord<String, String> record) throws ExecutionException, InterruptedException {
 		ProducerRecord<String, String> event = new ProducerRecord<>(Topics.SENSOR_EVENTS, record.key(), record.value());
 		for (Header header : record.headers()) {
-			if (!header.key().startsWith(DEAD_LETTER_HEADERS_PREFIX)) {
+			if (!header.key().startsWith(DEAD_LETTER_HEADERS_PREFIX) && !TRACE_HEADERS.contains(header.key())) {
 				event.headers().add(header);
 			}
 		}
