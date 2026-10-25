@@ -171,7 +171,7 @@
       "id": 4,
       "type": "timeseries",
       "title": "4. Mensajes pendientes en Kafka",
-      "description": "Mensajes por leer del processor. «Ahora»: suma de las 3 particiones en el momento de la lectura (Kafka publica la métrica con el topic con punto y con guion bajo: se usa una). «Máximo reciente»: el mayor retraso visto en la ventana de muestreo del cliente (~1 min); recoge las ráfagas que una lectura cada 5 s no ve.",
+      "description": "Mensajes por leer del processor. «Ahora»: suma de las 3 particiones en el momento de la lectura (Kafka publica la métrica con el topic con punto y con guion bajo: se usa una). «Máximo reciente»: el mayor retraso visto en la ventana de muestreo del cliente (~1 min); recoge las ráfagas que una lectura cada 5 s no ve. «Ahora» puede tardar en aparecer tras arrancar el processor: la métrica nace con el primer fetch.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"

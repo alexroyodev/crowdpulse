@@ -49,7 +49,9 @@ class PrometheusEndpointIT {
 			"crowdpulse_zone_alert_level{",
 			"crowdpulse_alerts_total{",
 			"crowdpulse_database_outage ",
-			"kafka_consumer_fetch_manager_records_lag{",
+			// Exists since the consumer is created. The per-partition records_lag of the dashboard is
+			// not checked: the Kafka client creates it after the first fetch and Micrometer picks up new
+			// Kafka metrics periodically, so it may take longer than this test waits (seen in T08).
 			"kafka_consumer_fetch_manager_records_lag_max{");
 
 	@LocalManagementPort
