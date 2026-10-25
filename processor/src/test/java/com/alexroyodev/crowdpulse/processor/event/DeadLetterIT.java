@@ -40,6 +40,8 @@ import com.alexroyodev.crowdpulse.processor.TopicPublisher;
 import com.alexroyodev.crowdpulse.shared.SensorEventMessage;
 import com.alexroyodev.crowdpulse.shared.Topics;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
@@ -62,15 +64,17 @@ class DeadLetterIT {
 	private final JsonMapper json;
 	private final JdbcClient jdbc;
 	private final Clock clock;
+	private final MeterRegistry registry;
 
 	@Autowired
 	DeadLetterIT(KafkaTemplate<String, String> kafka, ConsumerFactory<String, String> consumers, JsonMapper json,
-			JdbcClient jdbc, Clock clock) {
+			JdbcClient jdbc, Clock clock, MeterRegistry registry) {
 		this.topic = new TopicPublisher(kafka, json);
 		this.deadLetters = new TopicProbe(consumers, Topics.SENSOR_EVENTS_DLT);
 		this.json = json;
 		this.jdbc = jdbc;
 		this.clock = clock;
+		this.registry = registry;
 	}
 
 	@BeforeEach
@@ -81,10 +85,15 @@ class DeadLetterIT {
 	@Test
 	void brokenJsonGoesToTheDeadLetterTopicAndTheZoneGoesOn(CapturedOutput output) {
 		String value = "{\"eventId\": ";
+		double contentBefore = deadLettered("content");
+		double otherBefore = deadLettered("other");
 
 		topic.publishRaw("NORTE", value, Topics.MESSAGE_VERSION);
 
 		ConsumerRecord<String, String> dead = singleDeadLetter();
+		// Spec 006: counted as a content failure, like the replay of spec 005 would skip it.
+		assertThat(deadLettered("content") - contentBefore).isEqualTo(1);
+		assertThat(deadLettered("other") - otherBefore).isZero();
 		assertThat(dead.key()).isEqualTo("NORTE");
 		assertThat(dead.value()).isEqualTo(value);
 		assertThat(header(dead, KafkaHeaders.DLT_ORIGINAL_TOPIC)).isEqualTo(Topics.SENSOR_EVENTS);
@@ -132,10 +141,15 @@ class DeadLetterIT {
 	void unknownZoneGoesToTheDeadLetterTopicAtTheFirstAttempt() {
 		// The API answers 422 first (D2); this is a message that did not come from the API.
 		SensorEventMessage message = message("NOEXISTE", ENTRY, clock.instant());
+		double contentBefore = deadLettered("content");
+		double otherBefore = deadLettered("other");
 
 		topic.publish(message);
 
 		ConsumerRecord<String, String> dead = singleDeadLetter();
+		// Spec 006: not a content failure, creating the zone fixes it.
+		assertThat(deadLettered("other") - otherBefore).isEqualTo(1);
+		assertThat(deadLettered("content") - contentBefore).isZero();
 		assertThat(header(dead, KafkaHeaders.DLT_EXCEPTION_CAUSE_FQCN)).isEqualTo(UnknownZoneException.class.getName());
 		verify(processor, times(1)).process(argThat(m -> m.eventId().equals(message.eventId())));
 	}
@@ -190,6 +204,12 @@ class DeadLetterIT {
 	private int occupancyOf(String zoneId) {
 		return jdbc.sql("SELECT occupancy FROM zone_occupancy WHERE zone_id = :zoneId")
 				.param("zoneId", zoneId).query(Integer.class).single();
+	}
+
+	/** The dead-letter counter of spec 006; the registry is shared, so tests compare before and after. */
+	private double deadLettered(String reason) {
+		Counter counter = registry.find("crowdpulse.events.dead.lettered").tag("reason", reason).counter();
+		return counter == null ? 0 : counter.count();
 	}
 
 }

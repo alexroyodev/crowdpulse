@@ -22,6 +22,7 @@ import com.alexroyodev.crowdpulse.processor.event.UnknownZoneException;
 import com.alexroyodev.crowdpulse.shared.DatabaseUnavailable;
 import com.alexroyodev.crowdpulse.shared.Topics;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
@@ -55,7 +56,8 @@ class KafkaConfig {
 	 * message is not committed and is tried again.
 	 */
 	@Bean
-	DefaultErrorHandler errorHandler(KafkaTemplate<String, String> template, JsonMapper json, DatabaseOutage outage) {
+	DefaultErrorHandler errorHandler(KafkaTemplate<String, String> template, JsonMapper json, DatabaseOutage outage,
+			MeterRegistry registry) {
 		DeadLetterPublishingRecoverer deadLetter = new DeadLetterPublishingRecoverer(template,
 				// Negative partition: Kafka chooses it from the key.
 				(record, ex) -> new TopicPartition(Topics.SENSOR_EVENTS_DLT, -1));
@@ -69,6 +71,7 @@ class KafkaConfig {
 					.addKeyValue("cause", NestedExceptionUtils.getMostSpecificCause(ex).toString())
 					.setCause(ex)
 					.log();
+			registry.counter("crowdpulse.events.dead.lettered", "reason", deadLetterReason(ex)).increment();
 			deadLetter.accept(record, ex);
 		};
 		// 3 attempts in total, 1 s apart, for failures that may go away (e.g. the database for a moment).
@@ -87,6 +90,16 @@ class KafkaConfig {
 		// One WARN per outage (DatabaseOutage) instead of an ERROR per attempt.
 		handler.setLogLevel(KafkaException.Level.DEBUG);
 		return handler;
+	}
+
+	/**
+	 * Spec 006: content (the message itself is wrong) or other. Decided like the replay does (spec
+	 * 005): ContentFailure on the class of the listener exception's cause, the same class Spring
+	 * Kafka writes in the kafka_dlt-exception-cause-fqcn header. So the metric and the replay agree.
+	 */
+	private static String deadLetterReason(Exception ex) {
+		Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+		return ContentFailure.isContentFailure(cause.getClass().getName()) ? "content" : "other";
 	}
 
 	/** 1, 2, 4, 8, 16 s and then every 30 s, with no limit. */

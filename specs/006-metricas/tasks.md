@@ -45,12 +45,16 @@ actualizado. Al terminar se marca `[x]`.
     dos abrían el 8082; corregido en un commit aparte (`--management.server.port=0`, también en
     `ProcessorRestartIT`).
 
-- [ ] **T03 — Contador del DLT** (plan §2)
+- [x] **T03 — Contador del DLT** (plan §2)
   - `crowdpulse.events.dead.lettered` con `reason` (`ContentFailure.TYPES` sobre la causa más
     interna), en el `loggingRecoverer` de `KafkaConfig`.
   - `DeadLetterIT` ampliado: JSON roto → `content` +1; zona inexistente → `other` +1.
   - **Mutación:** `reason` siempre `other` → falla; restaurar.
   - **Verificación:** `verify`.
+  - Hecho así (2026-10-25): el `reason` usa la causa directa de la excepción del listener (la
+    clase que Spring Kafka escribe en `kafka_dlt-exception-cause-fqcn`) y
+    `ContentFailure.isContentFailure`, la misma función que el reproceso. Mutación → «expected 1
+    but was 0».
 
 - [ ] **T04 — Gauges de zona leídos de la BD** (plan §3; CA4)
   - `MetricsProperties` (`crowdpulse.metrics.zone-refresh: 5s`), `ZoneMetrics` con
